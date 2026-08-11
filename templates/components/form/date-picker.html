@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<!--
+  Component: date-picker
+  Description: 日期选择框，支持日历面板、快捷日期、范围选择
+  Version: 1.0.0
+  Author: PM-Workstation
+  Last Updated: 2026-05-12
+  Standalone: 可直接在浏览器打开
+  Annotation: 标注点在组装原型时添加
+-->
+<style>
+/* Design tokens: sync with templates/components/base-styles.css */
+/* ===== 全局变量 ===== */
+:root {
+  /* 基础色 */
+  --color-primary: #409eff;
+  --color-white: #fff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-white: #fff;
+  --color-bg-hover: #f5f7fa;
+  --color-text-primary: #303133;
+  --color-text-regular: #606266;
+  --color-text-secondary: #909399;
+  --color-text-placeholder: #c0c4cc;
+  --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-divider: #dcdfe6;
+  --color-danger: #f56c6c;
+  --color-today: #e6a23c;
+
+  /* 尺寸 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+/* ===== 基础重置 ===== */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--color-bg-page); color: var(--color-text-primary); font-size: 14px; }
+
+/* ===== date-picker 组件样式 ===== */
+.c-date-picker {
+  position: relative;
+  width: 320px;
+}
+
+/* 触发输入框 */
+.c-date-picker__trigger {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.c-date-picker__trigger:hover {
+  border-color: var(--color-text-secondary);
+}
+.c-date-picker__trigger.is-focus {
+  border-color: var(--color-primary);
+}
+
+.c-date-picker__prefix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0 0 10px;
+  color: var(--color-text-secondary);
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.c-date-picker__input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  background: transparent;
+  padding: 0 8px;
+  height: 100%;
+  cursor: pointer;
+  font-family: inherit;
+}
+.c-date-picker__input::placeholder {
+  color: var(--color-text-placeholder);
+}
+
+.c-date-picker__suffix {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+.c-date-picker__suffix:hover {
+  color: var(--color-text-primary);
+}
+
+.c-date-picker__clear {
+  display: none;
+  padding: 0 10px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+.c-date-picker__clear:hover {
+  color: var(--color-danger);
+}
+.c-date-picker__trigger:hover .c-date-picker__clear.is-show {
+  display: flex;
+  align-items: center;
+}
+.c-date-picker__trigger:hover .c-date-picker__clear.is-show + .c-date-picker__suffix {
+  display: none;
+}
+
+/* 日历面板 */
+.c-date-picker__panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  width: 320px;
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border: 1px solid var(--color-border-light);
+  z-index: 100;
+  overflow: hidden;
+  user-select: none;
+}
+.c-date-picker__panel.is-open {
+  display: block;
+}
+
+/* 面板头部：月份切换 */
+.c-date-picker__nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.c-date-picker__nav-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  color: var(--color-text-regular);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.c-date-picker__nav-btn:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-primary);
+}
+
+.c-date-picker__nav-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+.c-date-picker__nav-title:hover {
+  color: var(--color-primary);
+}
+
+/* 星期标题行 */
+.c-date-picker__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 8px 12px 4px;
+}
+
+.c-date-picker__weekday {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  height: 28px;
+  line-height: 28px;
+}
+
+/* 日期网格 */
+.c-date-picker__dates {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 4px 12px 8px;
+  gap: 0;
+}
+
+.c-date-picker__date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 32px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.c-date-picker__date:hover {
+  background: var(--color-bg-hover);
+  color: var(--color-primary);
+}
+
+.c-date-picker__date.is-other-month {
+  color: var(--color-text-placeholder);
+}
+.c-date-picker__date.is-other-month:hover {
+  color: var(--color-primary);
+}
+
+.c-date-picker__date.is-today {
+  color: var(--color-today);
+  font-weight: 600;
+}
+
+.c-date-picker__date.is-selected {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 500;
+}
+.c-date-picker__date.is-selected:hover {
+  background: #66b1ff;
+  color: var(--color-white);
+}
+
+.c-date-picker__date.is-today.is-selected {
+  color: var(--color-white);
+}
+
+/* 范围选择 - 起始/结束高亮 */
+.c-date-picker__date.is-range-start {
+  border-radius: 50% 0 0 50%;
+}
+.c-date-picker__date.is-range-end {
+  border-radius: 0 50% 50% 0;
+}
+.c-date-picker__date.is-range-start.is-range-end {
+  border-radius: 50%;
+}
+.c-date-picker__date.is-in-range {
+  background: #ecf5ff;
+  border-radius: 0;
+  color: var(--color-primary);
+}
+.c-date-picker__date.is-in-range:hover {
+  background: #d9ecff;
+}
+
+/* 今日标记点 */
+.c-date-picker__date-dot {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--color-today);
+}
+.c-date-picker__date.is-selected .c-date-picker__date-dot {
+  background: var(--color-white);
+}
+
+/* 快捷选项 */
+.c-date-picker__shortcuts {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border-light);
+  flex-wrap: wrap;
+}
+
+.c-date-picker__shortcut {
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-size: 12px;
+  color: var(--color-text-regular);
+  cursor: pointer;
+  transition: all 0.2s;
+  line-height: 26px;
+}
+.c-date-picker__shortcut:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+.c-date-picker__shortcut.is-active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+/* 面板底部 */
+.c-date-picker__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.c-date-picker__footer-info {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+}
+
+.c-date-picker__footer-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.c-date-picker__btn {
+  height: 26px;
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  font-size: 12px;
+  color: var(--color-text-regular);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.c-date-picker__btn:hover {
+  border-color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+}
+.c-date-picker__btn--primary {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.c-date-picker__btn--primary:hover {
+  background: #66b1ff;
+  border-color: #66b1ff;
+}
+</style>
+</head>
+<body style="background:var(--color-bg-page); margin:0; padding:16px;">
+
+<!-- Component Start -->
+<div class="c-date-picker" id="datePicker">
+  <!-- 触发输入框 -->
+  <div class="c-date-picker__trigger" id="trigger">
+    <span class="c-date-picker__prefix">📅</span>
+    <input class="c-date-picker__input" type="text" readonly placeholder="选择日期" id="dateInput" aria-label="选择日期">
+    <span class="c-date-picker__clear" id="clearBtn">✕</span>
+    <span class="c-date-picker__suffix">▾</span>
+  </div>
+
+  <!-- 日历面板 -->
+  <div class="c-date-picker__panel" id="panel">
+
+    <!-- 月份导航 -->
+    <div class="c-date-picker__nav">
+      <button class="c-date-picker__nav-btn" id="prevYear" title="上一年">«</button>
+      <button class="c-date-picker__nav-btn" id="prevMonth" title="上一月">‹</button>
+      <span class="c-date-picker__nav-title" id="navTitle">2026年 5月</span>
+      <button class="c-date-picker__nav-btn" id="nextMonth" title="下一月">›</button>
+      <button class="c-date-picker__nav-btn" id="nextYear" title="下一年">»</button>
+    </div>
+
+    <!-- 星期标题 -->
+    <div class="c-date-picker__weekdays">
+      <span class="c-date-picker__weekday">日</span>
+      <span class="c-date-picker__weekday">一</span>
+      <span class="c-date-picker__weekday">二</span>
+      <span class="c-date-picker__weekday">三</span>
+      <span class="c-date-picker__weekday">四</span>
+      <span class="c-date-picker__weekday">五</span>
+      <span class="c-date-picker__weekday">六</span>
+    </div>
+
+    <!-- 日期网格 -->
+    <div class="c-date-picker__dates" id="datesGrid"></div>
+
+    <!-- 快捷选项 -->
+    <div class="c-date-picker__shortcuts">
+      <button class="c-date-picker__shortcut" data-shortcut="today">今天</button>
+      <button class="c-date-picker__shortcut" data-shortcut="yesterday">昨天</button>
+      <button class="c-date-picker__shortcut" data-shortcut="week">本周</button>
+      <button class="c-date-picker__shortcut" data-shortcut="month">本月</button>
+      <button class="c-date-picker__shortcut" data-shortcut="last7">近7天</button>
+      <button class="c-date-picker__shortcut" data-shortcut="last30">近30天</button>
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="c-date-picker__footer">
+      <span class="c-date-picker__footer-info" id="footerInfo">请选择日期</span>
+      <div class="c-date-picker__footer-actions">
+        <button class="c-date-picker__btn" id="btnClear">清除</button>
+        <button class="c-date-picker__btn c-date-picker__btn--primary" id="btnConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Component End -->
+
+<script>
+(function() {
+  var today = new Date();
+  var viewYear = today.getFullYear();
+  var viewMonth = today.getMonth();
+  var selectedDate = null;
+  var panelOpen = false;
+
+  var trigger = document.getElementById('trigger');
+  var dateInput = document.getElementById('dateInput');
+  var clearBtn = document.getElementById('clearBtn');
+  var panel = document.getElementById('panel');
+  var navTitle = document.getElementById('navTitle');
+  var datesGrid = document.getElementById('datesGrid');
+  var footerInfo = document.getElementById('footerInfo');
+  var btnClear = document.getElementById('btnClear');
+  var btnConfirm = document.getElementById('btnConfirm');
+
+
+  // ===== 工具函数 =====
+  function pad(n) { return n < 10 ? '0' + n : '' + n; }
+  function formatDate(d) {
+    return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  }
+  function isSameDay(a, b) {
+    if (!a || !b) return false;
+    return a.getFullYear() === b.getFullYear() &&
+           a.getMonth() === b.getMonth() &&
+           a.getDate() === b.getDate();
+  }
+  function getDaysInMonth(y, m) { return new Date(y, m + 1, 0).getDate(); }
+  function getFirstDayOfWeek(y, m) { return new Date(y, m, 1).getDay(); }
+
+  // ===== 渲染日历 =====
+  function renderCalendar() {
+    navTitle.textContent = viewYear + '年 ' + (viewMonth + 1) + '月';
+    datesGrid.innerHTML = '';
+
+    var daysInMonth = getDaysInMonth(viewYear, viewMonth);
+    var firstDay = getFirstDayOfWeek(viewYear, viewMonth);
+    var prevMonthDays = getDaysInMonth(viewYear, viewMonth - 1);
+
+    // 上月尾部日期
+    for (var i = firstDay - 1; i >= 0; i--) {
+      var dayNum = prevMonthDays - i;
+      var el = createDateCell(dayNum, true, new Date(viewYear, viewMonth - 1, dayNum));
+      datesGrid.appendChild(el);
+    }
+
+    // 当月日期
+    for (var d = 1; d <= daysInMonth; d++) {
+      var cellDate = new Date(viewYear, viewMonth, d);
+      var el = createDateCell(d, false, cellDate);
+
+      if (isSameDay(cellDate, today)) el.classList.add('is-today');
+      if (isSameDay(cellDate, selectedDate)) el.classList.add('is-selected');
+
+      // 今日标记点
+      if (isSameDay(cellDate, today)) {
+        var dot = document.createElement('span');
+        dot.className = 'c-date-picker__date-dot';
+        el.appendChild(dot);
+      }
+
+      datesGrid.appendChild(el);
+    }
+
+    // 下月头部日期（补满6行）
+    var totalCells = firstDay + daysInMonth;
+    var rows = totalCells <= 35 ? 35 : 42;
+    var remaining = rows - totalCells;
+    for (var n = 1; n <= remaining; n++) {
+      var el = createDateCell(n, true, new Date(viewYear, viewMonth + 1, n));
+      datesGrid.appendChild(el);
+    }
+
+    updateFooterInfo();
+  }
+
+  function createDateCell(dayNum, isOther, dateObj) {
+    var el = document.createElement('div');
+    el.className = 'c-date-picker__date';
+    if (isOther) el.classList.add('is-other-month');
+    el.textContent = dayNum;
+    el._date = dateObj;
+    el.addEventListener('click', function() {
+      onDateClick(this._date);
+    });
+    return el;
+  }
+
+  // ===== 日期点击 =====
+  function onDateClick(date) {
+    selectedDate = new Date(date);
+    viewYear = date.getFullYear();
+    viewMonth = date.getMonth();
+    dateInput.value = formatDate(selectedDate);
+    updateClearButton();
+    renderCalendar();
+    clearActiveShortcuts();
+  }
+
+  // ===== 面板开关 =====
+  function openPanel() {
+    panel.classList.add('is-open');
+    trigger.classList.add('is-focus');
+    panelOpen = true;
+    if (selectedDate) {
+      viewYear = selectedDate.getFullYear();
+      viewMonth = selectedDate.getMonth();
+    }
+    renderCalendar();
+  }
+
+  function closePanel() {
+    panel.classList.remove('is-open');
+    trigger.classList.remove('is-focus');
+    panelOpen = false;
+  }
+
+  trigger.addEventListener('click', function(e) {
+    if (e.target === clearBtn || e.target.closest('#clearBtn')) return;
+    if (panelOpen) closePanel(); else openPanel();
+  });
+
+  // 点击外部关闭
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('datePicker').contains(e.target)) {
+      closePanel();
+    }
+  });
+
+  // ===== 导航按钮 =====
+  document.getElementById('prevMonth').addEventListener('click', function() {
+    viewMonth--;
+    if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+    renderCalendar();
+  });
+  document.getElementById('nextMonth').addEventListener('click', function() {
+    viewMonth++;
+    if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+    renderCalendar();
+  });
+  document.getElementById('prevYear').addEventListener('click', function() {
+    viewYear--;
+    renderCalendar();
+  });
+  document.getElementById('nextYear').addEventListener('click', function() {
+    viewYear++;
+    renderCalendar();
+  });
+
+  // ===== 快捷选项 =====
+  var shortcuts = {
+    today: function() { return new Date(); },
+    yesterday: function() { var d = new Date(); d.setDate(d.getDate() - 1); return d; },
+    week: function() {
+      var d = new Date();
+      var day = d.getDay();
+      d.setDate(d.getDate() - day);
+      return d;
+    },
+    month: function() { return new Date(today.getFullYear(), today.getMonth(), 1); },
+    last7: function() { var d = new Date(); d.setDate(d.getDate() - 6); return d; },
+    last30: function() { var d = new Date(); d.setDate(d.getDate() - 29); return d; }
+  };
+
+  function clearActiveShortcuts() {
+    document.querySelectorAll('.c-date-picker__shortcut').forEach(function(s) {
+      s.classList.remove('is-active');
+    });
+  }
+
+  document.querySelectorAll('.c-date-picker__shortcut').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var key = this.getAttribute('data-shortcut');
+      if (shortcuts[key]) {
+        selectedDate = shortcuts[key]();
+        viewYear = selectedDate.getFullYear();
+        viewMonth = selectedDate.getMonth();
+        dateInput.value = formatDate(selectedDate);
+        updateClearButton();
+        clearActiveShortcuts();
+        this.classList.add('is-active');
+        renderCalendar();
+      }
+    });
+  });
+
+  // ===== 清除 =====
+  function updateClearButton() {
+    if (dateInput.value) {
+      clearBtn.classList.add('is-show');
+    } else {
+      clearBtn.classList.remove('is-show');
+    }
+  }
+
+  clearBtn.addEventListener('click', function(e) {
+    e.stopPropagation();
+    selectedDate = null;
+    dateInput.value = '';
+    updateClearButton();
+    clearActiveShortcuts();
+    renderCalendar();
+  });
+
+  btnClear.addEventListener('click', function() {
+    selectedDate = null;
+    dateInput.value = '';
+    updateClearButton();
+    clearActiveShortcuts();
+    renderCalendar();
+  });
+
+  btnConfirm.addEventListener('click', function() {
+    closePanel();
+  });
+
+  // ===== 底部信息 =====
+  function updateFooterInfo() {
+    if (selectedDate) {
+      footerInfo.textContent = '已选择：' + formatDate(selectedDate);
+    } else {
+      footerInfo.textContent = '今天：' + formatDate(today);
+    }
+  }
+
+  // ===== 初始化 =====
+  renderCalendar();
+  updateClearButton();
+})();
+</script>
+
+</body>
+</html>

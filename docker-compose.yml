@@ -1,0 +1,28 @@
+version: "3.8"
+
+services:
+  test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m pytest tests/ -v --tb=short --cov=scripts --cov-report=term-missing
+    volumes:
+      - .:/app
+    environment:
+      - PYTHONPATH=/app/scripts:/app/scripts/restore_pipeline:/app/scripts/utils
+
+  lint:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: flake8 scripts/ tests/ --max-line-length=120 --exclude=__pycache__
+    volumes:
+      - .:/app
+
+  format-check:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: black --check scripts/ tests/
+    volumes:
+      - .:/app

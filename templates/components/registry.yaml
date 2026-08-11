@@ -1,0 +1,55 @@
+version: '1.0'
+updated_at: '2026-06-15'
+base_styles: base-styles.css
+styles:
+  - base-styles.css
+categories:
+- id: search
+  name: 搜索筛选
+- id: data-display
+  name: 数据展示
+- id: navigation
+  name: 导航
+- id: feedback
+  name: 反馈交互
+- id: form
+  name: 表单输入
+- id: layout
+  name: 布局容器
+components:
+- name: account-search
+  file: search/account-search.html
+  category: search
+  description: 账号搜索框，支持关键词过滤、状态标签、展开子项
+  status: draft
+  created_at: '2026-05-11'
+  style: base
+  tags: []
+- name: text-input
+  file: form/text-input.html
+  category: form
+  description: 单行/多行输入文本框，支持表单名称下拉、多值标签、多行录入切换
+  status: draft
+  created_at: '2026-05-11'
+  style: base
+  tags:
+  - 表单
+  - 输入框
+  - 多行
+  - 多值
+- name: date-picker
+  file: form/date-picker.html
+  category: form
+  description: 日期选择框，支持日历面板、快捷日期、范围选择
+  status: draft
+  created_at: '2026-05-12'
+  style: base
+  tags: []
+- name: personnel-selector
+  file: form/personnel-selector.html
+  category: form
+  description: 人员选择框，支持多层级级联、状态过滤、创建人切换
+  status: draft
+  created_at: '2026-05-12'
+  style: base
+  tags: []

@@ -1,0 +1,28 @@
+#!/bin/bash
+# PreToolUse(Bash) Hook — 过滤 Bash 命令输出，防止上下文膨胀
+#
+# 匹配规则：
+#   curl 命令 → 截断到 100 行
+#   find/grep -r → 截断到 50 行
+#   其他命令 → 不干预
+
+input=$(cat)
+cmd=$(echo "$input" | jq -r '.tool_input.command')
+
+# 场景 1：API 调用 — 只保留前 100 行（JSON 响应通常很长）
+if [[ "$cmd" == *"curl"* ]]; then
+  filtered_cmd=$(echo "$cmd" | sed 's/"/\\"/g')
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"updatedInput\":{\"command\":\"$filtered_cmd 2>&1 | head -100\"}}}"
+  exit 0
+fi
+
+# 场景 2：文件查找 — 限制结果数量
+if [[ "$cmd" == *"find "* ]] || [[ "$cmd" == *"grep -r"* ]] || [[ "$cmd" == *"grep -R"* ]]; then
+  filtered_cmd=$(echo "$cmd" | sed 's/"/\\"/g')
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"updatedInput\":{\"command\":\"$filtered_cmd 2>&1 | head -50\"}}}"
+  exit 0
+fi
+
+# 场景 3：wc/统计命令 — 不干预
+# 场景 4：其他命令 — 不干预
+echo '{}'

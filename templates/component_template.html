@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<!--
+  Component: {组件名}
+  Description: {组件描述}
+  Version: {版本号}
+  Author: {作者}
+  Last Updated: {日期}
+  Standalone: 可直接在浏览器打开
+  Annotation: 标注点在组装原型时添加
+-->
+<style>
+/* Design tokens: sync with templates/components/base-styles.css */
+/* ===== 全局变量 ===== */
+:root {
+  /* 业务色 - 根据实际需求调整 */
+  --color-state-a: #e6a23c; --bg-state-a: #fdf6ec; --border-state-a: #f5dab1;
+  --color-state-b: #409eff; --bg-state-b: #ecf5ff; --border-state-b: #b3d8ff;
+  --color-state-c: #67c23a; --bg-state-c: #f0f9eb; --border-state-c: #c2e7b0;
+  --color-state-d: #606266; --bg-state-d: #f5f7fa; --border-state-d: #dcdfe6;
+
+  /* 基础色 */
+  --color-primary: #409eff;
+  --color-white: #fff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-white: #fff;
+  --color-text-primary: #303133;
+  --color-text-regular: #606266;
+  --color-text-secondary: #909399;
+  --color-text-placeholder: #c0c4cc;
+  --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-divider: #dcdfe6;
+
+  /* 尺寸 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+/* ===== 基础重置 ===== */
+* { box-sizing: border-box; }
+body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--color-bg-page); color: var(--color-text-primary); font-size: 14px; }
+
+/* ===== 通用按钮 ===== */
+.btn { height: 32px; padding: 0 16px; border: 1px solid var(--color-divider); border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; background: var(--color-white); color: var(--color-text-regular); transition: all 0.2s; }
+.btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
+.btn-primary:hover { background: #66b1ff; border-color: #66b1ff; }
+.btn-sm { height: 28px; padding: 0 12px; font-size: 12px; }
+
+/* ===== {组件名} 样式 ===== */
+.c-{组件名} {
+  /* 容器样式 */
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+</style>
+</head>
+<body style="background:var(--color-bg-page); margin:0; padding:16px;">
+
+<!-- Component Start -->
+<div class="c-{组件名}">
+  <!-- Header / Title 区域 -->
+  <div class="c-{组件名}__header">
+    <h3 class="c-{组件名}__title">{标题}</h3>
+  </div>
+
+  <!-- Content / Body 区域 -->
+  <div class="c-{组件名}__body">
+    {内容区域}
+  </div>
+
+  <!-- Footer / Action 区域 -->
+  <div class="c-{组件名}__footer">
+    <button class="btn btn-primary">{主按钮}</button>
+    <button class="btn">{次按钮}</button>
+  </div>
+</div>
+<!-- Component End -->
+
+</body>
+</html>

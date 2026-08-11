@@ -1,0 +1,55 @@
+# 版本元数据
+
+version: "v0.1.0"
+created_at: "2026-08-11"
+release_date: null
+status: draft  # 可选值: draft, in_progress, released, archived
+author: "PM-Agent"
+
+# 版本说明
+description: "项目初始化版本"
+
+# 变更摘要
+changes:
+  added: []
+  modified: []
+  removed: []
+
+# 版本演进历史（bump 时自动追加）
+version_history:
+  - version: "v0.1.0"
+    date: "2026-08-11"
+    level: init
+    trigger: "版本创建"
+
+# 依赖关系
+dependencies:
+  previous_version: "null"
+  next_version: null
+
+# 包含的 PRD（自动填充）
+prd_files: []
+
+# 包含的原型（自动填充）
+prototype_files: []
+
+# 关联的知识库条目
+knowledge_base_refs: []
+
+# 里程碑
+milestones:
+  - name: "需求冻结"
+    date: null
+    status: pending
+  - name: "原型完成"
+    date: null
+    status: pending
+  - name: "开发完成"
+    date: null
+    status: pending
+  - name: "测试通过"
+    date: null
+    status: pending
+  - name: "发布上线"
+    date: null
+    status: pending

@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# SessionStart(compact) Hook for ZCode — 项目状态快照
+#
+# 触发时机：compact 后恢复会话
+# 作用：注入项目状态摘要，帮助会话快速恢复上下文
+#
+# 兼容多平台输出格式（参照 superpowers session-start）：
+#   - Cursor: additional_context
+#   - Claude Code: hookSpecificOutput.additionalContext
+#   - Copilot/SDK: additionalContext
+
+set -euo pipefail
+
+# 通过脚本位置推导项目根目录（不依赖 CLAUDE_PLUGIN_ROOT）
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+PROJECT_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+
+STATE_FILE="${PROJECT_ROOT}/STATE.md"
+
+# 构建 compact 恢复快照
+snapshot=""
+if [ -f "$STATE_FILE" ]; then
+  snapshot="$(head -25 "$STATE_FILE" 2>/dev/null || true)"
+  active_work="$(grep -A3 'Active Work' "$STATE_FILE" 2>/dev/null || true)"
+  snapshot="${snapshot}
+
+--- 当前版本任务 ---
+${active_work}"
+else
+  snapshot="STATE.md 不存在。如需初始化：python3 scripts/state_manager.py init"
+fi
+
+session_context="## 项目状态快照（压缩恢复）
+
+${snapshot}"
+
+# JSON 字符串转义
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+context_escaped=$(escape_for_json "$session_context")
+
+# 按运行平台输出对应 JSON 格式
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$context_escaped"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$context_escaped"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$context_escaped"
+fi
+
+exit 0

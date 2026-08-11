@@ -1,0 +1,111 @@
+# PRD 流水线 manifest（Runtime 唯一机器源，设计 §6.6）
+# 散文描述见 prd-pipeline.md（仅展示用）；调度以本文件为准。
+pipeline_id: prd
+name: PRD 流水线
+version: v1.0
+description: 从用户需求到 PRD 文档（含评审门禁与两个异步卡点）
+
+# 全局约束
+defaults:
+  max_rounds: 15          # 每阶段 LLM↔工具 最大轮数
+  max_tokens_per_stage: 60000
+  tools: [read_file, write_file, edit_file, list_files, grep, run_script, git_commit]
+
+stages:
+  - stage_id: research
+    role: Researcher
+    prompt_file: docs/agents/prd_stages/researcher.md
+    context:
+      max_lines: 400
+      required: [docs/knowledge-base/]
+      deferred: [versions/其他版本 PRD]
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/01_research_summary.md
+    completion_signal: "AGENT_COMPLETE: researcher"
+
+  - stage_id: visualize
+    role: Visualizer
+    prompt_file: docs/agents/prd_stages/visualizer.md
+    context:
+      max_lines: 200
+      required:
+        - "versions/{version}/agent_comm/{task_id}/01_research_summary.md"
+      deferred: []
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/02_diagram_index.md
+    completion_signal: "AGENT_COMPLETE: visualizer"
+
+  - stage_id: writer_phase1
+    role: Writer
+    prompt_file: docs/agents/prd_stages/writer.md
+    context:
+      max_lines: 650
+      required:
+        - versions/{version}/agent_comm/{task_id}/01_research_summary.md
+        - versions/{version}/agent_comm/{task_id}/02_diagram_index.md
+      deferred: [versions/其他版本文件]
+    outputs:
+      - versions/{version}/prd/{feature}-prd.md   # 前半（章节 1-2）
+    completion_signal: "AGENT_COMPLETE: writer"
+
+  # ── 卡点①：计划批准（异步）──
+  - stage_id: plan_approval
+    type: checkpoint
+    gate: plan_approval
+    title: 计划批准
+    description: 展示调研摘要 + 图表索引 + PRD 前半，等待用户批准/打回（附意见注入上下文）
+
+  - stage_id: feasibility
+    role: Feasibility
+    prompt_file: docs/agents/prd_stages/writer.md   # 可行性章节随 writer 文档
+    context:
+      max_lines: 500
+      required:
+        - "versions/{version}/prd/{feature}-prd.md"
+      deferred: [prototype/]
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/03_feasibility_report.md
+    completion_signal: "AGENT_COMPLETE: feasibility"
+
+  - stage_id: writer_phase2
+    role: Writer
+    prompt_file: docs/agents/prd_stages/writer.md
+    context:
+      max_lines: 650
+      required:
+        - versions/{version}/prd/{feature}-prd.md
+        - versions/{version}/agent_comm/{task_id}/03_feasibility_report.md
+      deferred: []
+    outputs:
+      - versions/{version}/prd/{feature}-prd.md   # 完整 4 章
+    completion_signal: "AGENT_COMPLETE: writer"
+
+  - stage_id: review
+    role: Reviewer
+    prompt_file: docs/agents/prd_stages/reviewer.md
+    context:
+      max_lines: 400
+      required:
+        - versions/{version}/prd/{feature}-prd.md
+        - docs/verification/checklists.md
+      deferred: [prototype/]
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/05_prd_review_report.md
+    completion_signal: "AGENT_COMPLETE: reviewer"
+    quality_gate:
+      threshold: 80            # quality-gates.md §1：PRD ≥80
+      score_from: versions/{version}/agent_comm/{task_id}/05_prd_review_report.md
+      score_pattern: "总分[:：]\\s*(\\d+)"
+      on_fail: writer_phase1   # 回边：打回 Writer（W20）
+      max_retries: 2
+
+  # ── 卡点②：审查通过（异步）──
+  - stage_id: user_review
+    type: checkpoint
+    gate: review
+    title: 用户审查
+    description: 展示完整 PRD + 评审报告 + 变更 diff，用户通过/继续修改
+
+  - stage_id: finalize
+    type: finalize
+    actions: [git_commit, state_refresh]

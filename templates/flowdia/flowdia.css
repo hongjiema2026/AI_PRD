@@ -1,0 +1,117 @@
+/* ============================================================
+ * flowdia · 交互式流程图组件（CSS）
+ * 标准文档：docs/rules/flow-diagram-standard.md
+ * 用法：将本文件内容注入页面 <style>，配合 flowdia.js 与节点/边配置使用
+ * ============================================================ */
+/* ===== 交互式业务流程图（flowdia） ===== */
+.fd-scroll { overflow-x: auto; margin: 4px -4px 0; padding: 4px; }
+.flowdia {
+  position: relative; display: grid; gap: 34px 40px; min-width: 1080px;
+  padding: 24px 22px 46px; border-radius: 14px;
+  background: linear-gradient(180deg, #fbfcfe, #f5f8fb);
+  border: 1px solid var(--color-border-light);
+}
+#dia-flow { grid-template-columns: repeat(10, 1fr); grid-template-areas:
+  "laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA"
+  "d1 d1 d2 d2 d3 d3 d3a d3a d4 d4"
+  ". . . . . . d3b d3b . ."
+  "laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB"
+  "s1 s1 s2 s2 s3 s3 s3 s4 s4 s4"; }
+#dia-core { grid-template-columns: repeat(12, 1fr); min-width: 1140px; grid-template-areas:
+  "laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA"
+  "a a b b . c c c . h h ."
+  "a a b b . d d d f f g g"
+  ". . b b . e e e . . i i"
+  "laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB"
+  "t t j j k k l l l m m m"; }
+
+.fd-lane {
+  grid-column: 1 / -1; z-index: 0; display: flex; align-items: center; gap: 10px;
+  margin: 6px 0;
+  padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: .3px;
+}
+.fd-lane .fd-lane-sub { font-weight: 500; font-size: 11px; opacity: .72; margin-left: 2px; padding-left: 10px; border-left: 1px solid rgba(0,0,0,.15); }
+.fd-lane.la { background: linear-gradient(90deg, rgba(250,140,22,.13), rgba(250,140,22,.03)); color: #AD6800; border-left: 4px solid #FA8C16; }
+.fd-lane.lb { background: linear-gradient(90deg, rgba(64,158,255,.13), rgba(64,158,255,.03)); color: #1d4ed8; border-left: 4px solid #409eff; }
+
+.fd-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
+.fd-edge {
+  fill: none; stroke-width: 2.2; stroke-dasharray: 7 6;
+  stroke-linecap: round; stroke-linejoin: round;
+  animation: fddash 1.1s linear infinite;
+  transition: opacity .25s ease, stroke-width .25s ease;
+}
+.fd-edge.fd-solid { stroke-dasharray: none; animation: none; }
+.fd-edge.fd-loop { stroke-dasharray: 2 8; animation-duration: 2.4s; opacity: .85; }
+@keyframes fddash { to { stroke-dashoffset: -13; } }
+
+.fd-label {
+  position: absolute; transform: translate(-50%, -50%); z-index: 3; pointer-events: none;
+  background: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+  white-space: nowrap; box-shadow: 0 1px 6px rgba(0,0,0,.10); border: 1px solid #e8e8e8;
+  transition: opacity .25s ease;
+}
+.fd-label.fd-strong { border-width: 1.5px; font-size: 11.5px; padding: 4px 12px; box-shadow: 0 2px 10px rgba(245,34,45,.18); }
+
+.fn {
+  position: relative; z-index: 2; display: flex; flex-direction: column;
+  border-radius: 14px; padding: 12px 14px 11px; background: #fff; border: 2px solid #ddd;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  transition: transform .22s cubic-bezier(.34,1.3,.44,1), box-shadow .22s ease, opacity .25s ease, border-color .22s ease, filter .25s ease;
+}
+.fn:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+.fn.fn-vc { justify-content: center; }
+.fn .fn-head { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+.fn .fn-ico { width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+.fn .fn-title { font-size: 13.5px; font-weight: 800; line-height: 1.35; }
+.fn .fn-sub { font-size: 11px; color: #777; line-height: 1.55; margin-top: 2px; }
+.fn .fn-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.fn .chip { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.75); color: #666; border: 1px solid rgba(0,0,0,.08); }
+.fn-badge {
+  position: absolute; top: -9px; right: 12px; background: #e6a23c; color: #fff;
+  font-size: 9.5px; font-weight: 700; padding: 1px 8px; border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15); letter-spacing: .5px;
+}
+.fn-badge.red { background: #F5222D; }
+.fn-num {
+  position: absolute; top: -11px; left: -9px; width: 24px; height: 24px; border-radius: 50%;
+  background: #409eff; color: #fff; font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(64,158,255,.45);
+}
+
+/* 节点配色体系 */
+.fn.t-orange { border-color: #FA8C16; background: linear-gradient(180deg, #FFFBF5, #FFF7E6); }
+.fn.t-orange .fn-title { color: #AD6800; } .fn.t-orange .fn-ico { background: #FA8C16; }
+.fn.t-blue { border-color: #409eff; background: linear-gradient(180deg, #F5FAFF, #EBF5FF); }
+.fn.t-blue .fn-title { color: #1d4ed8; } .fn.t-blue .fn-ico { background: #409eff; }
+.fn.t-red { border-color: #F5222D; background: linear-gradient(180deg, #FFF8F7, #FFF1F0); }
+.fn.t-red .fn-title { color: #CF1322; } .fn.t-red .fn-ico { background: #F5222D; }
+.fn.t-green { border-color: #52C41A; background: linear-gradient(180deg, #FBFEF6, #F0FBEB); }
+.fn.t-green .fn-title { color: #389E0D; } .fn.t-green .fn-ico { background: #52C41A; }
+.fn.t-amber { border-color: #e6a23c; background: linear-gradient(135deg, #FFFBF2, #FFF3E0); }
+.fn.t-amber .fn-title { color: #d35400; } .fn.t-amber .fn-ico { background: #e6a23c; }
+.fn.t-gray { border-color: #bfc4cc; background: linear-gradient(180deg, #FAFAFA, #F2F4F7); }
+.fn.t-gray .fn-title { color: #606266; } .fn.t-gray .fn-ico { background: #909399; }
+.fn.t-manual { border-color: #c0392b; border-style: dashed; background: linear-gradient(180deg, #FEF7F7, #FEF0F0); }
+.fn.t-manual .fn-title { color: #c0392b; } .fn.t-manual .fn-ico { background: #c0392b; }
+.fn.t-gate { border-width: 2.5px; box-shadow: 0 3px 14px rgba(245,34,45,.14); }
+
+/* 悬停聚焦：高亮上下游链路，其余淡出 */
+.flowdia.focusing .fn { opacity: .16; filter: saturate(.4); }
+.flowdia.focusing .fn.fd-hot { opacity: 1; filter: none; transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,.14); }
+.flowdia.focusing .fd-edge { opacity: .07; animation-play-state: paused; }
+.flowdia.focusing .fd-edge.fd-hot { opacity: 1; stroke-width: 3.2; animation-play-state: running; }
+.flowdia.focusing .fd-label { opacity: .07; }
+.flowdia.focusing .fd-label.fd-hot { opacity: 1; }
+
+/* 进场渐入（JS 加 .fd-arm 后才启用初始隐藏，无 JS 时直接可见） */
+.flowdia.fd-arm:not(.fd-in) .fn { opacity: 0; transform: translateY(14px); }
+.flowdia.fd-arm:not(.fd-in) .fd-edge, .flowdia.fd-arm:not(.fd-in) .fd-label { opacity: 0; }
+.flowdia.fd-in .fn { transition-delay: calc(var(--i, 0) * 55ms); }
+.flowdia.fd-in.fd-done .fn { transition-delay: 0ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-edge { animation: none !important; }
+  .flowdia .fn { transition: none; }
+}

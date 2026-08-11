@@ -1,0 +1,73 @@
+# 原型流水线 manifest（Runtime 唯一机器源，设计 §6.6）
+# 散文描述见 proto-pipeline.md（仅展示用）；调度以本文件为准。
+pipeline_id: proto
+name: 原型流水线
+version: v1.0
+description: 从 PRD 到可交互 HTML 原型（Architect → Implementer → Tester，评分门禁 ≥90）
+
+defaults:
+  max_rounds: 20
+  max_tokens_per_stage: 80000
+  tools: [read_file, write_file, edit_file, list_files, grep, run_script, git_commit]
+
+stages:
+  - stage_id: architect
+    role: Architect
+    prompt_file: docs/agents/proto_agent.md   # Architect 章节
+    context:
+      max_lines: 300
+      required:
+        - versions/{version}/prd/{feature}-prd.md
+        - templates/prototype/组件注册表
+      deferred: [versions/其他版本文件]
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/01_proto_design.md
+    completion_signal: "AGENT_COMPLETE: architect"
+
+  # ── 卡点①：设计确认（异步）──
+  - stage_id: plan_approval
+    type: checkpoint
+    gate: plan_approval
+    title: 原型设计批准
+    description: 展示设计文档 + 组件来源映射表 + 交互流程图，用户批准/打回
+
+  - stage_id: implementer
+    role: Implementer
+    prompt_file: docs/agents/proto_agent.md   # Implementer 章节
+    context:
+      max_lines: 500
+      required:
+        - "versions/{version}/agent_comm/{task_id}/01_proto_design.md"
+      deferred: []
+    outputs:
+      - versions/{version}/prototype/pages/    # proto-*.html + 组装页面
+    completion_signal: "AGENT_COMPLETE: implementer"
+
+  - stage_id: tester
+    role: Tester
+    prompt_file: docs/agents/proto_agent.md   # Tester 章节
+    context:
+      max_lines: 400
+      required:
+        - "versions/{version}/prototype/pages/"
+      deferred: []
+    outputs:
+      - versions/{version}/agent_comm/{task_id}/03_proto_test_report.md
+    completion_signal: "AGENT_COMPLETE: tester"
+    quality_gate:
+      threshold: 90            # quality-gates.md §1：原型 ≥90
+      score_from: versions/{version}/agent_comm/{task_id}/03_proto_test_report.md
+      score_pattern: "总分[:：]\\s*(\\d+)"
+      on_fail: implementer     # 打回实现（W20）
+      max_retries: 2
+
+  # ── 卡点②：原型审查（异步）──
+  - stage_id: user_review
+    type: checkpoint
+    gate: review
+    title: 原型审查
+    description: 展示原型页面清单 + 测试报告，用户通过/继续修改
+
+  - stage_id: finalize
+    type: finalize
+    actions: [git_commit, state_refresh]

@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<!--
+  Component: personnel-selector
+  Description: 人员选择框，支持多层级级联、状态过滤、创建人切换
+  Version: 1.0.0
+  Author: PM-Workstation
+  Last Updated: 2026-05-12
+  Standalone: 可直接在浏览器打开
+  Annotation: 标注点在组装原型时添加
+-->
+<style>
+/* Design tokens: sync with templates/components/base-styles.css */
+:root {
+  --color-primary: #409eff;
+  --color-white: #fff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-white: #fff;
+  --color-bg-hover: #f5f7fa;
+  --color-text-primary: #303133;
+  --color-text-regular: #606266;
+  --color-text-secondary: #909399;
+  --color-text-placeholder: #c0c4cc;
+  --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-divider: #dcdfe6;
+  --color-danger: #f56c6c;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-info: #909399;
+  --radius-sm: 4px;
+  --radius-md: 8px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: var(--color-bg-page); color: var(--color-text-primary); font-size: 14px; }
+
+/* ===== 人员选择器容器 ===== */
+.c-personnel-selector {
+  position: relative;
+  width: 580px;
+  overflow: visible;
+}
+
+/* 触发栏 + 在职按钮 的外层排列 */
+.c-personnel-selector__trigger-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ===== 触发栏 ===== */
+.c-personnel-selector__bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-white);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.c-personnel-selector__bar:hover { border-color: var(--color-text-secondary); }
+.c-personnel-selector__bar.is-focus { border-color: var(--color-primary); }
+
+/* 创建人类型下拉 */
+.c-personnel-selector__type {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 28px 0 10px;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-bg-hover);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--color-text-regular);
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.c-personnel-selector__type:hover { background: #eaeaea; color: var(--color-text-primary); }
+.c-personnel-selector__type-arrow {
+  position: absolute;
+  right: 8px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  transition: transform 0.2s;
+}
+.c-personnel-selector__type.is-open .c-personnel-selector__type-arrow {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* 类型下拉菜单 */
+.c-personnel-selector__type-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 130px;
+  background: var(--color-bg-white);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border: 1px solid var(--color-border-light);
+  z-index: 200;
+  overflow: hidden;
+}
+.c-personnel-selector__type.is-open .c-personnel-selector__type-menu { display: block; }
+
+.c-personnel-selector__type-option {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--color-text-regular);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.c-personnel-selector__type-option:hover { background: var(--color-bg-hover); color: var(--color-primary); }
+.c-personnel-selector__type-option.is-active { color: var(--color-primary); font-weight: 500; }
+.c-personnel-selector__type-option.is-active::after {
+  content: '✓'; margin-left: auto; font-size: 12px; color: var(--color-primary);
+}
+
+/* 标签区 */
+.c-personnel-selector__tags {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-height: 34px;
+  padding: 4px 6px;
+  gap: 4px;
+  cursor: pointer;
+}
+.c-personnel-selector__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  background: #f0f2f5;
+  border-radius: 3px;
+  font-size: 12px;
+  color: var(--color-text-primary);
+  max-width: 140px;
+}
+.c-personnel-selector__tag-name {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.c-personnel-selector__tag-close {
+  font-size: 12px; color: var(--color-text-secondary); cursor: pointer; flex-shrink: 0; line-height: 1;
+}
+.c-personnel-selector__tag-close:hover { color: var(--color-danger); }
+
+.c-personnel-selector__collapse {
+  display: inline-flex; align-items: center;
+  height: 24px; padding: 0 8px;
+  background: #606266; border-radius: 3px;
+  font-size: 12px; color: #fff; cursor: default;
+}
+
+.c-personnel-selector__placeholder {
+  font-size: 13px; color: var(--color-text-placeholder); white-space: nowrap;
+}
+
+/* 右侧箭头 */
+.c-personnel-selector__bar-suffix {
+  display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px;
+  color: var(--color-text-secondary); font-size: 12px;
+  cursor: pointer; flex-shrink: 0; transition: color 0.2s;
+}
+.c-personnel-selector__bar-suffix:hover { color: var(--color-primary); }
+
+/* ===== 面板 ===== */
+.c-personnel-selector__panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px); left: 0;
+  width: calc(100% - 90px); /* 与选择框对齐，不覆盖在职按钮区域 */
+  min-width: 460px;
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  border: 1px solid var(--color-border-light);
+  z-index: 100;
+  overflow: hidden;
+}
+.c-personnel-selector__panel.is-open { display: block; }
+
+/* 面板头部（仅搜索） */
+.c-personnel-selector__panel-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+/* 在职按钮（紧跟触发栏右侧） */
+.c-personnel-selector__active-toggle {
+  position: relative;
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 34px; padding: 0 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-white);
+  font-size: 13px; color: var(--color-text-regular);
+  cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; font-family: inherit;
+  flex-shrink: 0;
+}
+.c-personnel-selector__active-toggle:hover { border-color: var(--color-success); color: var(--color-success); }
+.c-personnel-selector__active-toggle.is-active { background: var(--color-success); border-color: var(--color-success); color: #fff; }
+.c-personnel-selector__active-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--color-text-secondary);
+}
+.c-personnel-selector__active-toggle.is-active .c-personnel-selector__active-dot { background: #fff; }
+
+/* 搜索框 */
+.c-personnel-selector__search {
+  flex: 1; height: 28px; padding: 0 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--color-text-primary);
+  background: var(--color-bg-white); outline: none; font-family: inherit;
+  transition: border-color 0.2s;
+}
+.c-personnel-selector__search::placeholder { color: var(--color-text-placeholder); }
+.c-personnel-selector__search:focus { border-color: var(--color-primary); }
+
+/* ===== 级联选择区（左右逐层展开） ===== */
+.c-personnel-selector__cascade {
+  display: flex;
+  min-height: 260px;
+  max-height: 340px;
+  overflow: hidden;
+}
+
+/* 每一级列 */
+.c-personnel-selector__col {
+  flex-shrink: 0;
+  width: 160px;
+  border-right: 1px solid var(--color-border-light);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.c-personnel-selector__col:last-child { border-right: none; }
+.c-personnel-selector__col::-webkit-scrollbar { width: 4px; }
+.c-personnel-selector__col::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+
+.c-personnel-selector__col-title {
+  position: sticky; top: 0;
+  padding: 8px 12px;
+  font-size: 12px; font-weight: 600;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-hover);
+  border-bottom: 1px solid var(--color-border-light);
+  z-index: 1;
+}
+
+/* 选项行（部门/分组） */
+.c-personnel-selector__item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px;
+  font-size: 13px; color: var(--color-text-regular);
+  cursor: pointer; transition: all 0.15s;
+  position: relative;
+}
+.c-personnel-selector__item:hover { background: var(--color-bg-hover); color: var(--color-primary); }
+.c-personnel-selector__item.is-active { color: var(--color-primary); background: #ecf5ff; font-weight: 500; }
+.c-personnel-selector__item.is-active::after {
+  content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 2px;
+  background: var(--color-primary);
+}
+
+.c-personnel-selector__item-name {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.c-personnel-selector__item-arrow {
+  font-size: 10px; color: var(--color-text-placeholder); flex-shrink: 0;
+  margin-left: 4px;
+}
+
+/* 人员列（最后一列） */
+.c-personnel-selector__col--people {
+  flex: 1; min-width: 180px;
+}
+
+/* 人员行 */
+.c-personnel-selector__person {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px;
+  font-size: 13px; color: var(--color-text-regular);
+  cursor: pointer; transition: all 0.15s;
+  border-bottom: 1px solid var(--color-border-light);
+}
+.c-personnel-selector__person:last-child { border-bottom: none; }
+.c-personnel-selector__person:hover { background: var(--color-bg-hover); color: var(--color-primary); }
+.c-personnel-selector__person.is-selected { background: #ecf5ff; color: var(--color-primary); }
+
+/* 人员头像 */
+.c-personnel-selector__avatar {
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #e0e0e0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: var(--color-text-secondary); flex-shrink: 0;
+}
+.c-personnel-selector__person.is-selected .c-personnel-selector__avatar {
+  background: var(--color-primary); color: #fff;
+}
+
+.c-personnel-selector__person-name {
+  flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+.c-personnel-selector__person-role {
+  font-size: 11px; color: var(--color-text-secondary);
+}
+
+/* 人员状态点 */
+.c-personnel-selector__status-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.c-personnel-selector__status-dot.is-active { background: var(--color-success); }
+.c-personnel-selector__status-dot.is-inactive { background: var(--color-info); }
+.c-personnel-selector__status-dot.is-leave { background: var(--color-warning); }
+
+/* 选中勾 */
+.c-personnel-selector__person-check {
+  width: 16px; height: 16px;
+  border: 1.5px solid var(--color-border);
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: transparent; flex-shrink: 0;
+  transition: all 0.15s;
+}
+.c-personnel-selector__person.is-selected .c-personnel-selector__person-check {
+  background: var(--color-primary); border-color: var(--color-primary); color: #fff;
+}
+
+/* 空状态 */
+.c-personnel-selector__empty {
+  padding: 24px 12px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--color-text-placeholder);
+}
+
+/* ===== 面板底部 ===== */
+.c-personnel-selector__footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--color-border-light);
+  background: var(--color-bg-hover);
+}
+.c-personnel-selector__footer-info { font-size: 12px; color: var(--color-text-secondary); }
+.c-personnel-selector__footer-actions { display: flex; gap: 6px; }
+.c-personnel-selector__btn {
+  height: 28px; padding: 0 14px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-sm);
+  background: var(--color-bg-white); font-size: 12px; color: var(--color-text-regular);
+  cursor: pointer; transition: all 0.2s; font-family: inherit;
+}
+.c-personnel-selector__btn:hover { border-color: var(--color-text-secondary); color: var(--color-text-primary); }
+.c-personnel-selector__btn--primary { background: var(--color-primary); border-color: var(--color-primary); color: #fff; }
+.c-personnel-selector__btn--primary:hover { background: #66b1ff; border-color: #66b1ff; }
+
+/* ===== Tooltip ===== */
+.c-personnel-selector__tooltip {
+  display: none; position: fixed;
+  background: var(--color-text-primary); color: #fff;
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  font-size: 12px; z-index: 9999;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  max-width: 300px; line-height: 1.6; pointer-events: none;
+}
+.c-personnel-selector__tooltip.is-visible { display: block; }
+.c-personnel-selector__tooltip::before {
+  content: ''; position: absolute; top: -4px; left: 50%; transform: translateX(-50%);
+  border-left: 5px solid transparent; border-right: 5px solid transparent;
+  border-bottom: 5px solid var(--color-text-primary);
+}
+</style>
+</head>
+<body style="background:var(--color-bg-page); margin:0; padding:16px;">
+
+<!-- Component Start -->
+<div class="c-personnel-selector" id="personnelSelector">
+  <!-- 触发栏 + 在职按钮 -->
+  <div class="c-personnel-selector__trigger-row">
+    <!-- 触发栏（含创建人类型切换） -->
+    <div class="c-personnel-selector__bar" id="bar">
+      <!-- 创建人类型切换 -->
+      <div class="c-personnel-selector__type" id="typeSwitch">
+        <span id="typeLabel">创建人</span>
+        <span class="c-personnel-selector__type-arrow">▾</span>
+        <div class="c-personnel-selector__type-menu" id="typeMenu"></div>
+      </div>
+
+      <!-- 已选标签区 -->
+      <div class="c-personnel-selector__tags" id="tagsArea">
+        <span class="c-personnel-selector__placeholder">选择人员...</span>
+      </div>
+
+      <!-- 右侧展开箭头 -->
+      <div class="c-personnel-selector__bar-suffix" id="barSuffix">▾</div>
+    </div>
+
+    <!-- 在职按钮（紧跟触发栏右侧） -->
+    <div class="c-personnel-selector__active-toggle" id="activeToggle">
+      <span class="c-personnel-selector__active-dot"></span>
+      <span>在职</span>
+    </div>
+  </div>
+
+  <!-- 选择面板 -->
+  <div class="c-personnel-selector__panel" id="panel">
+
+    <!-- 面板头部（仅搜索） -->
+    <div class="c-personnel-selector__panel-header">
+      <input class="c-personnel-selector__search" type="text" placeholder="搜索人员..." id="searchInput" aria-label="搜索人员" style="width:100%;">
+    </div>
+
+    <!-- 级联选择区（左右逐层展开） -->
+    <div class="c-personnel-selector__cascade" id="cascade">
+      <!-- 各级列由 JS 动态渲染 -->
+    </div>
+
+    <!-- 底部操作 -->
+    <div class="c-personnel-selector__footer">
+      <span class="c-personnel-selector__footer-info" id="footerInfo">请选择人员</span>
+      <div class="c-personnel-selector__footer-actions">
+        <button class="c-personnel-selector__btn" id="btnClear">清除</button>
+        <button class="c-personnel-selector__btn c-personnel-selector__btn--primary" id="btnConfirm">确定</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Component End -->
+
+<script>
+(function() {
+  // ===== 模拟数据 =====
+  var personnelTypes = [
+    { key: 'creator', label: '创建人' },
+    { key: 'assignee', label: '负责人' },
+    { key: 'reviewer', label: '审核人' },
+    { key: 'follower', label: '关注人' }
+  ];
+
+  var orgData = [
+    { name: '产品部', children: [
+      { name: '产品一组', children: [
+        { name: '张三', status: 'active', role: '产品经理' },
+        { name: '李四', status: 'active', role: '高级产品经理' },
+        { name: '王五', status: 'leave', role: '产品经理' }
+      ]},
+      { name: '产品二组', children: [
+        { name: '赵六', status: 'active', role: '产品总监' },
+        { name: '钱七', status: 'inactive', role: '产品经理' }
+      ]}
+    ]},
+    { name: '技术部', children: [
+      { name: '前端组', children: [
+        { name: '孙八', status: 'active', role: '前端负责人' },
+        { name: '周九', status: 'active', role: '高级前端' },
+        { name: '吴十', status: 'active', role: '前端开发' }
+      ]},
+      { name: '后端组', children: [
+        { name: '郑十一', status: 'active', role: '后端负责人' },
+        { name: '冯十二', status: 'leave', role: '高级后端' }
+      ]},
+      { name: '测试组', children: [
+        { name: '陈十三', status: 'active', role: '测试负责人' },
+        { name: '褚十四', status: 'inactive', role: '测试工程师' }
+      ]}
+    ]},
+    { name: '设计部', children: [
+      { name: 'UI设计组', children: [
+        { name: '卫十五', status: 'active', role: 'UI设计师' },
+        { name: '蒋十六', status: 'active', role: '视觉设计师' }
+      ]},
+      { name: 'UX设计组', children: [
+        { name: '沈十七', status: 'active', role: 'UX设计师' }
+      ]}
+    ]}
+  ];
+
+  // ===== 状态 =====
+  var currentType = 'creator';
+  var selectedPersons = [];
+  var filterActiveOnly = false;
+  var panelOpen = false;
+  var typeMenuOpen = false;
+  var cascadePath = []; // [{ node: {...} }, ...]
+  var searchKeyword = '';
+
+  // ===== DOM =====
+  var selector = document.getElementById('personnelSelector');
+  var bar = document.getElementById('bar');
+  var typeSwitch = document.getElementById('typeSwitch');
+  var typeLabel = document.getElementById('typeLabel');
+  var typeMenu = document.getElementById('typeMenu');
+  var tagsArea = document.getElementById('tagsArea');
+  var panel = document.getElementById('panel');
+  var cascade = document.getElementById('cascade');
+  var activeToggle = document.getElementById('activeToggle');
+  var searchInput = document.getElementById('searchInput');
+  var footerInfo = document.getElementById('footerInfo');
+  var btnClear = document.getElementById('btnClear');
+  var btnConfirm = document.getElementById('btnConfirm');
+
+  // ===== Tooltip =====
+  var tooltip = document.createElement('div');
+  tooltip.className = 'c-personnel-selector__tooltip';
+  document.body.appendChild(tooltip);
+
+  // ===== 类型切换（标注点1） =====
+  function renderTypeMenu() {
+    typeMenu.innerHTML = '';
+    personnelTypes.forEach(function(t) {
+      var opt = document.createElement('div');
+      opt.className = 'c-personnel-selector__type-option' + (t.key === currentType ? ' is-active' : '');
+      opt.textContent = t.label;
+      opt.addEventListener('click', function(e) {
+        e.stopPropagation();
+        currentType = t.key;
+        typeLabel.textContent = t.label;
+        closeTypeMenu();
+      });
+      typeMenu.appendChild(opt);
+    });
+  }
+
+  function toggleTypeMenu() {
+    typeMenuOpen = !typeMenuOpen;
+    typeSwitch.classList.toggle('is-open', typeMenuOpen);
+  }
+  function closeTypeMenu() {
+    typeMenuOpen = false;
+    typeSwitch.classList.remove('is-open');
+  }
+
+  typeSwitch.addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleTypeMenu();
+  });
+
+  // ===== 面板开关（标注点2） =====
+  function openPanel() {
+    panel.classList.add('is-open');
+    bar.classList.add('is-focus');
+    panelOpen = true;
+    renderCascade();
+  }
+  function closePanel() {
+    panel.classList.remove('is-open');
+    bar.classList.remove('is-focus');
+    panelOpen = false;
+    searchInput.value = '';
+    searchKeyword = '';
+  }
+
+  bar.addEventListener('click', function(e) {
+    if (e.target.closest('#typeSwitch')) return;
+    if (e.target.closest('.c-personnel-selector__tag-close')) return;
+    if (panelOpen) closePanel(); else openPanel();
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!selector.contains(e.target)) {
+      closePanel();
+      closeTypeMenu();
+    }
+  });
+
+  // ===== 在职过滤（标注点4） =====
+  activeToggle.addEventListener('click', function() {
+    filterActiveOnly = !filterActiveOnly;
+    this.classList.toggle('is-active', filterActiveOnly);
+    renderCascade();
+  });
+
+  // ===== 搜索 =====
+  searchInput.addEventListener('input', function() {
+    searchKeyword = this.value.trim().toLowerCase();
+    renderCascade();
+  });
+
+  // ===== 辅助函数 =====
+  function getLevelData(levelIndex) {
+    if (levelIndex === 0) return orgData;
+    var parent = cascadePath[levelIndex - 1];
+    if (parent && parent.node && parent.node.children) return parent.node.children;
+    return [];
+  }
+
+  function isLeafChildren(children) {
+    if (!children || children.length === 0) return true;
+    return !children[0].children;
+  }
+
+  function filterByKeyword(items) {
+    if (!searchKeyword) return items;
+    return items.filter(function(item) {
+      if (item.name.toLowerCase().indexOf(searchKeyword) !== -1) return true;
+      if (item.children) return hasMatchInChildren(item.children, searchKeyword);
+      if (item.role && item.role.toLowerCase().indexOf(searchKeyword) !== -1) return true;
+      return false;
+    });
+  }
+
+  function hasMatchInChildren(children, kw) {
+    for (var i = 0; i < children.length; i++) {
+      if (children[i].name.toLowerCase().indexOf(kw) !== -1) return true;
+      if (children[i].role && children[i].role.toLowerCase().indexOf(kw) !== -1) return true;
+      if (children[i].children && hasMatchInChildren(children[i].children, kw)) return true;
+    }
+    return false;
+  }
+
+  // ===== 级联渲染 —— 左右逐层展开 =====
+  function renderCascade() {
+    cascade.innerHTML = '';
+
+    // 渲染已选路径的每一层级列 + 下一级待选列
+    for (var lvl = 0; lvl <= cascadePath.length; lvl++) {
+      var data = getLevelData(lvl);
+      if (!data || data.length === 0) continue;
+
+      var selectedNode = cascadePath[lvl] ? cascadePath[lvl].node : null;
+
+      // 如果这层的 children 是人员（叶子），渲染人员列
+      if (selectedNode && selectedNode.children && isLeafChildren(selectedNode.children)) {
+        renderPeopleColumn(selectedNode.children);
+        continue;
+      }
+
+      // 如果这层还没选中，且数据本身就是人员（无下级），渲染人员列
+      if (!selectedNode && data.length > 0 && isLeafChildren(data)) {
+        renderPeopleColumn(data);
+        continue;
+      }
+
+      renderDeptColumn(data, lvl, selectedNode);
+    }
+  }
+
+  // ===== 渲染部门列 =====
+  function renderDeptColumn(items, levelIndex, selectedNode) {
+    var col = document.createElement('div');
+    col.className = 'c-personnel-selector__col';
+
+    // 列标题
+    var title = document.createElement('div');
+    title.className = 'c-personnel-selector__col-title';
+    if (levelIndex === 0) title.textContent = '部门';
+    else if (cascadePath[levelIndex - 1]) title.textContent = cascadePath[levelIndex - 1].node.name;
+    else title.textContent = '第' + (levelIndex + 1) + '级';
+    col.appendChild(title);
+
+    var filtered = filterByKeyword(items);
+
+    filtered.forEach(function(item) {
+      var row = document.createElement('div');
+      row.className = 'c-personnel-selector__item';
+      if (selectedNode && selectedNode.name === item.name) {
+        row.classList.add('is-active');
+      }
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'c-personnel-selector__item-name';
+      nameSpan.textContent = item.name;
+      row.appendChild(nameSpan);
+
+      // 有下级则显示箭头
+      if (item.children && item.children.length > 0) {
+        var arrow = document.createElement('span');
+        arrow.className = 'c-personnel-selector__item-arrow';
+        arrow.textContent = '›';
+        row.appendChild(arrow);
+      }
+
+      row.addEventListener('click', (function(n, l) {
+        return function() {
+          // 截断路径到当前层，推入新选择
+          cascadePath = cascadePath.slice(0, l);
+          cascadePath.push({ node: n });
+          renderCascade();
+        };
+      })(item, levelIndex));
+
+      col.appendChild(row);
+    });
+
+    cascade.appendChild(col);
+  }
+
+  // ===== 渲染人员列 =====
+  function renderPeopleColumn(people) {
+    var col = document.createElement('div');
+    col.className = 'c-personnel-selector__col c-personnel-selector__col--people';
+
+    // 列标题
+    var title = document.createElement('div');
+    title.className = 'c-personnel-selector__col-title';
+    title.textContent = '人员';
+    col.appendChild(title);
+
+    // 过滤
+    var filtered = people;
+    if (filterActiveOnly) {
+      filtered = filtered.filter(function(p) { return p.status === 'active'; });
+    }
+    if (searchKeyword) {
+      filtered = filtered.filter(function(p) {
+        return p.name.toLowerCase().indexOf(searchKeyword) !== -1 ||
+               (p.role && p.role.toLowerCase().indexOf(searchKeyword) !== -1);
+      });
+    }
+
+    if (filtered.length === 0) {
+      var empty = document.createElement('div');
+      empty.className = 'c-personnel-selector__empty';
+      empty.textContent = '无匹配人员';
+      col.appendChild(empty);
+    } else {
+      filtered.forEach(function(person) {
+        var row = document.createElement('div');
+        row.className = 'c-personnel-selector__person';
+        if (isPersonSelected(person.name)) {
+          row.classList.add('is-selected');
+        }
+
+        // 勾选框
+        var check = document.createElement('span');
+        check.className = 'c-personnel-selector__person-check';
+        check.textContent = '✓';
+        row.appendChild(check);
+
+        // 头像
+        var avatar = document.createElement('span');
+        avatar.className = 'c-personnel-selector__avatar';
+        avatar.textContent = person.name.charAt(0);
+        row.appendChild(avatar);
+
+        // 名字
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'c-personnel-selector__person-name';
+        nameSpan.textContent = person.name;
+        row.appendChild(nameSpan);
+
+        // 角色
+        if (person.role) {
+          var roleSpan = document.createElement('span');
+          roleSpan.className = 'c-personnel-selector__person-role';
+          roleSpan.textContent = person.role;
+          row.appendChild(roleSpan);
+        }
+
+        // 状态点
+        var statusDot = document.createElement('span');
+        statusDot.className = 'c-personnel-selector__status-dot' +
+          (person.status === 'active' ? ' is-active' : '') +
+          (person.status === 'inactive' ? ' is-inactive' : '') +
+          (person.status === 'leave' ? ' is-leave' : '');
+        row.appendChild(statusDot);
+
+        row.addEventListener('click', function() { togglePerson(person); });
+        col.appendChild(row);
+      });
+    }
+
+    cascade.appendChild(col);
+  }
+
+  function isPersonSelected(name) {
+    for (var i = 0; i < selectedPersons.length; i++) {
+      if (selectedPersons[i].name === name) return true;
+    }
+    return false;
+  }
+
+  // ===== 人员选择 =====
+  function togglePerson(person) {
+    var idx = findPersonIndex(person.name);
+    if (idx >= 0) {
+      selectedPersons.splice(idx, 1);
+    } else {
+      selectedPersons.push(person);
+    }
+    renderTags();
+    updateFooter();
+    renderCascade();
+  }
+
+  function findPersonIndex(name) {
+    for (var i = 0; i < selectedPersons.length; i++) {
+      if (selectedPersons[i].name === name) return i;
+    }
+    return -1;
+  }
+
+  // ===== 标签渲染 =====
+  function renderTags() {
+    tagsArea.innerHTML = '';
+    if (selectedPersons.length === 0) {
+      var ph = document.createElement('span');
+      ph.className = 'c-personnel-selector__placeholder';
+      ph.textContent = '选择人员...';
+      tagsArea.appendChild(ph);
+      return;
+    }
+    if (selectedPersons.length >= 1) {
+      tagsArea.appendChild(createTag(selectedPersons[0]));
+    }
+    if (selectedPersons.length > 1) {
+      var collapse = document.createElement('span');
+      collapse.className = 'c-personnel-selector__collapse';
+      collapse.textContent = '+' + (selectedPersons.length - 1);
+      var tipHtml = '';
+      for (var i = 0; i < selectedPersons.length; i++) {
+        tipHtml += '<span>' + selectedPersons[i].name + '</span><br>';
+      }
+      collapse.addEventListener('mouseenter', function(e) {
+        tooltip.innerHTML = tipHtml;
+        var rect = collapse.getBoundingClientRect();
+        tooltip.style.left = (rect.left + rect.width / 2) + 'px';
+        tooltip.style.top = (rect.bottom + 6) + 'px';
+        tooltip.style.transform = 'translateX(-50%)';
+        tooltip.classList.add('is-visible');
+      });
+      collapse.addEventListener('mouseleave', function() {
+        tooltip.classList.remove('is-visible');
+      });
+      tagsArea.appendChild(collapse);
+    }
+  }
+
+  function createTag(person) {
+    var tag = document.createElement('span');
+    tag.className = 'c-personnel-selector__tag';
+    var nameSpan = document.createElement('span');
+    nameSpan.className = 'c-personnel-selector__tag-name';
+    nameSpan.textContent = person.name;
+    tag.appendChild(nameSpan);
+    var close = document.createElement('span');
+    close.className = 'c-personnel-selector__tag-close';
+    close.textContent = '×';
+    close.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var idx = findPersonIndex(person.name);
+      if (idx >= 0) {
+        selectedPersons.splice(idx, 1);
+        renderTags();
+        updateFooter();
+        renderCascade();
+      }
+    });
+    tag.appendChild(close);
+    return tag;
+  }
+
+  // ===== 底部信息 =====
+  function updateFooter() {
+    if (selectedPersons.length > 0) {
+      footerInfo.textContent = '已选 ' + selectedPersons.length + ' 人';
+    } else {
+      footerInfo.textContent = '请选择人员';
+    }
+  }
+
+  btnClear.addEventListener('click', function() {
+    selectedPersons = [];
+    renderTags();
+    updateFooter();
+    renderCascade();
+  });
+  btnConfirm.addEventListener('click', function() {
+    closePanel();
+  });
+
+  // ===== 初始化 =====
+  renderTypeMenu();
+  renderTags();
+  updateFooter();
+})();
+</script>
+
+</body>
+</html>

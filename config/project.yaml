@@ -1,0 +1,136 @@
+project:
+  name: PM-Workstation
+  description: 产品经理通用项目工作站
+  created_at: '2026-08-11'
+version:
+  current: v0.1.0
+  latest_release: null
+  scheme: semver
+  format: '{name}_v{major}.{minor}.{patch}'
+  name: null
+  versions:
+  - v0.1.0
+agents:
+  registry:
+  - name: orchestrator
+    file: docs/agents/orchestrator.md
+    description: 总指挥，负责调度和汇总
+  - name: kb
+    file: docs/agents/kb_agent.md
+    description: 知识库管家
+  - name: prd
+    file: docs/agents/prd_agent.md
+    description: 需求工程师
+  - name: proto
+    file: docs/agents/proto_agent.md
+    description: 原型工程师
+  - name: restore
+    file: docs/agents/restore_agent.md
+    description: 复原工程师
+  - name: ui-standard
+    file: docs/agents/ui_standard_agent.md
+    description: UI 规范管理员
+templates:
+  prd: templates/prd_template.md
+  component: templates/component_template.html
+  version_metadata: templates/version_metadata_template.yaml
+  task: templates/task_template.md
+paths:
+  versions: versions
+  docs: docs
+  knowledge_base: docs/knowledge-base
+  user_profile: docs/knowledge-base/user-profile
+  scripts: scripts
+  templates: templates
+rules:
+  max_retry: 3
+  task_timeout_minutes: 10
+user_cognition:
+  enabled: true
+  profile_path: docs/knowledge-base/user-profile
+  memory_path: .agents/memory
+  auto_learn: true
+  memory_ttl_days: 90
+  feedback_threshold: 2
+  inject_profile_to_task: true
+  check_preferences_before_output: true
+restore:
+  user_agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36
+  timeout_seconds: 30
+  max_resource_size_mb: 30
+  allowed_resource_types:
+  - css
+  - js
+  - png
+  - jpg
+  - jpeg
+  - gif
+  - svg
+  - ico
+  - webp
+  - woff
+  - woff2
+  - ttf
+  - eot
+  - otf
+  noise_selectors:
+  - .ad
+  - .ads
+  - '[id*=''ad-'']'
+  - '[class*=''advertisement'']'
+  - script[src*='google-analytics']
+  - script[src*='gtag']
+  - script[src*='facebook']
+  - script[src*='pixel']
+  - noscript
+  static_freeze:
+    enabled: true
+    render_script_patterns:
+    - app
+    - runtime
+    - chunk-
+    remove_preload_scripts: true
+  visual_verification:
+    enabled: true
+    threshold: 95
+    full_page: true
+  kb_extraction:
+    enabled: true
+    auto_extract_types:
+    - competitor
+    - design
+    - methodology
+    - domain
+    max_entries_per_page: 3
+    priority_rules:
+      p0: 包含定价、核心功能对比、独家数据
+      p1: 包含设计模式、交互方案、行业趋势
+      p2: 一般性参考、辅助信息
+    auto_trigger_kb_review: true
+  playwright:
+    mode: auto
+    page_load_wait: 3.0
+    scroll_times: 3
+    screenshot: true
+    fallback_to_requests: true
+    headless: false
+    user_data_dir: ~/.cache/pm-restore-browser-profile
+kb:
+  allowed_tags:
+  - user-research
+  - competitor
+  - data
+  - methodology
+  - requirement
+  - design
+  - tech
+  - business
+  - user-profile
+  - platform-api
+  categories:
+  - user-research
+  - competitor
+  - data
+  - methodology
+  - user-profile
+  - platform-api

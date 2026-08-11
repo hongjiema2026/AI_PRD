@@ -1,0 +1,219 @@
+/*
+ * PM-Workstation 统一设计令牌
+ * Design tokens: sync with templates/components/base-styles.css
+ *
+ * 本文件是所有原型组件的 CSS 变量基准定义。
+ * 新建组件时必须使用此文件中定义的变量，不允许硬编码颜色值。
+ */
+
+/* ===== 全局变量 ===== */
+:root {
+  /* 业务状态色 */
+  --color-state-a: #e6a23c; --bg-state-a: #fdf6ec; --border-state-a: #f5dab1;
+  --color-state-b: #409eff; --bg-state-b: #ecf5ff; --border-state-b: #b3d8ff;
+  --color-state-c: #67c23a; --bg-state-c: #f0f9eb; --border-state-c: #c2e7b0;
+  --color-state-d: #606266; --bg-state-d: #f5f7fa; --border-state-d: #dcdfe6;
+
+  /* 基础色 */
+  --color-primary: #409eff;
+  --color-primary-hover: #66b1ff;
+  --color-primary-active: #3a8ee6;
+  --color-success: #67c23a;
+  --color-warning: #e6a23c;
+  --color-danger: #f56c6c;
+  --color-info: #909399;
+  --color-white: #fff;
+  --color-bg-page: #f0f2f5;
+  --color-bg-white: #fff;
+  --color-bg-hover: #f5f7fa;
+
+  /* 文字色 */
+  --color-text-primary: #303133;
+  --color-text-regular: #606266;
+  --color-text-secondary: #909399;
+  --color-text-placeholder: #c0c4cc;
+  --color-text-white: #fff;
+
+  /* 边框色 */
+  --color-border: #e4e7ed;
+  --color-border-light: #ebeef5;
+  --color-divider: #dcdfe6;
+
+  /* 字号 */
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 20px;
+  --font-size-3xl: 24px;
+
+  /* 字重 */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* 行高 */
+  --line-height-tight: 1.3;
+  --line-height-base: 1.6;
+  --line-height-loose: 1.8;
+
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 16px;
+  --radius-circle: 50%;
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+
+  /* 字体栈 */
+  --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-family-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* ===== 基础重置 ===== */
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+  color: var(--color-text-primary);
+  background: var(--color-bg-page);
+}
+
+/* ===== 通用按钮 ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 var(--spacing-md);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  background: var(--color-white);
+  color: var(--color-text-regular);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
+.btn-primary { background: var(--color-primary); border-color: var(--color-primary); color: var(--color-white); }
+.btn-primary:hover { background: var(--color-primary-hover); border-color: var(--color-primary-hover); }
+.btn-success { background: var(--color-success); border-color: var(--color-success); color: var(--color-white); }
+.btn-danger { background: var(--color-danger); border-color: var(--color-danger); color: var(--color-white); }
+.btn-warning { background: var(--color-warning); border-color: var(--color-warning); color: var(--color-white); }
+.btn-sm { height: 28px; padding: 0 12px; font-size: var(--font-size-xs); }
+.btn-lg { height: 40px; padding: 0 24px; font-size: var(--font-size-lg); }
+
+/* ===== 通用输入框 ===== */
+.input,
+select.input {
+  height: 32px;
+  padding: 0 var(--spacing-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-white);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.input:focus { border-color: var(--color-primary); }
+.input::placeholder { color: var(--color-text-placeholder); }
+
+/* ===== 通用卡片 ===== */
+.card {
+  background: var(--color-bg-white);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md) 20px;
+  box-shadow: var(--shadow-sm);
+}
+
+/* ===== 通用表格 ===== */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th {
+  background: var(--color-bg-hover);
+  color: var(--color-text-regular);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  padding: 12px var(--spacing-md);
+  text-align: left;
+  white-space: nowrap;
+}
+.table td {
+  padding: 12px var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+  font-size: var(--font-size-sm);
+}
+.table tr:hover td { background: var(--color-bg-hover); }
+
+/* ===== 通用标签 ===== */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  border: 1px solid;
+}
+.tag-success { color: var(--color-success); background: var(--bg-state-c); border-color: var(--border-state-c); }
+.tag-warning { color: var(--color-warning); background: var(--bg-state-a); border-color: var(--border-state-a); }
+.tag-danger  { color: var(--color-danger);  background: #fef0f0; border-color: #fbc4c4; }
+.tag-info    { color: var(--color-primary); background: var(--bg-state-b); border-color: var(--border-state-b); }
+.tag-default { color: var(--color-state-d); background: var(--bg-state-d); border-color: var(--border-state-d); }
+
+/* ===== 页面头部 ===== */
+.page-header {
+  background: var(--color-bg-white);
+  padding: var(--spacing-md) 20px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-md);
+}
+.page-header h1 {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+/* ===== 标注点系统 ===== */
+.has-annotation { position: relative; }
+.annotation-point {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  width: 26px;
+  height: 26px;
+  background: #f56c6c;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  box-shadow: 0 2px 10px rgba(245, 108, 108, 0.5);
+  border: 2px solid #fff;
+  z-index: 10;
+  pointer-events: none;
+}
+.annotation-point.style-blue { background: #409eff; box-shadow: 0 2px 10px rgba(64, 158, 255, 0.5); }
+.annotation-point.style-green { background: #67c23a; box-shadow: 0 2px 10px rgba(103, 194, 58, 0.5); }
+.annotation-point.style-orange { background: #e6a23c; box-shadow: 0 2px 10px rgba(230, 162, 60, 0.5); }

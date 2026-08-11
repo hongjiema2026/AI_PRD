@@ -1,0 +1,37 @@
+#!/bin/bash
+# PostToolUse(Read) Hook — 检测大文件读取 + 累计水位追踪
+#
+# 单次 >500 行 → 建议分段读取
+# 累计 >800 行 → 水位提醒
+# 累计 >1500 行 → 建议 compact
+
+input=$(cat)
+
+# 从 hook 输入中提取 tool_output 的行数
+output_text=$(echo "$input" | jq -r '.tool_output.stdout // empty')
+if [ -z "$output_text" ]; then
+  echo '{}'
+  exit 0
+fi
+
+line_count=$(echo "$output_text" | wc -l | tr -d ' ')
+
+# 累计水位追踪
+WATERMARK_FILE="/tmp/pm_orchestrator_read_watermark"
+current_total=0
+if [ -f "$WATERMARK_FILE" ]; then
+  current_total=$(cat "$WATERMARK_FILE" 2>/dev/null || echo 0)
+fi
+new_total=$((current_total + line_count))
+echo "$new_total" > "$WATERMARK_FILE"
+
+# 分级提醒
+if [ "$line_count" -gt 500 ]; then
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"⚠️ 本次读取 ${line_count} 行（累计 ${new_total} 行）。建议使用 offset/limit 参数分段读取。\"}}"
+elif [ "$new_total" -gt 1500 ]; then
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"🔴 累计读取 ${new_total} 行，超过 1500 行水位线。建议执行 compact 释放上下文。\"}}"
+elif [ "$new_total" -gt 800 ]; then
+  echo "{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"💧 累计读取 ${new_total} 行（水位线 800/1500）。注意控制后续读取量。\"}}"
+else
+  echo '{}'
+fi

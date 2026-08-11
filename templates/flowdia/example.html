@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>flowdia 最小示例 · 交互式流程图组件</title>
+<style>
+  body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f7f8fa; padding: 24px; }
+  /* ============================================================
+ * flowdia · 交互式流程图组件（CSS）
+ * 标准文档：docs/rules/flow-diagram-standard.md
+ * 用法：将本文件内容注入页面 <style>，配合 flowdia.js 与节点/边配置使用
+ * ============================================================ */
+/* ===== 交互式业务流程图（flowdia） ===== */
+.fd-scroll { overflow-x: auto; margin: 4px -4px 0; padding: 4px; }
+.flowdia {
+  position: relative; display: grid; gap: 34px 40px; min-width: 1080px;
+  padding: 24px 22px 46px; border-radius: 14px;
+  background: linear-gradient(180deg, #fbfcfe, #f5f8fb);
+  border: 1px solid var(--color-border-light);
+}
+#dia-flow { grid-template-columns: repeat(10, 1fr); grid-template-areas:
+  "laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA"
+  "d1 d1 d2 d2 d3 d3 d3a d3a d4 d4"
+  ". . . . . . d3b d3b . ."
+  "laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB"
+  "s1 s1 s2 s2 s3 s3 s3 s4 s4 s4"; }
+#dia-core { grid-template-columns: repeat(12, 1fr); min-width: 1140px; grid-template-areas:
+  "laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA laneA"
+  "a a b b . c c c . h h ."
+  "a a b b . d d d f f g g"
+  ". . b b . e e e . . i i"
+  "laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB laneB"
+  "t t j j k k l l l m m m"; }
+
+.fd-lane {
+  grid-column: 1 / -1; z-index: 0; display: flex; align-items: center; gap: 10px;
+  margin: 6px 0;
+  padding: 9px 16px; border-radius: 10px; font-size: 13px; font-weight: 700; letter-spacing: .3px;
+}
+.fd-lane .fd-lane-sub { font-weight: 500; font-size: 11px; opacity: .72; margin-left: 2px; padding-left: 10px; border-left: 1px solid rgba(0,0,0,.15); }
+.fd-lane.la { background: linear-gradient(90deg, rgba(250,140,22,.13), rgba(250,140,22,.03)); color: #AD6800; border-left: 4px solid #FA8C16; }
+.fd-lane.lb { background: linear-gradient(90deg, rgba(64,158,255,.13), rgba(64,158,255,.03)); color: #1d4ed8; border-left: 4px solid #409eff; }
+
+.fd-svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; overflow: visible; }
+.fd-edge {
+  fill: none; stroke-width: 2.2; stroke-dasharray: 7 6;
+  stroke-linecap: round; stroke-linejoin: round;
+  animation: fddash 1.1s linear infinite;
+  transition: opacity .25s ease, stroke-width .25s ease;
+}
+.fd-edge.fd-solid { stroke-dasharray: none; animation: none; }
+.fd-edge.fd-loop { stroke-dasharray: 2 8; animation-duration: 2.4s; opacity: .85; }
+@keyframes fddash { to { stroke-dashoffset: -13; } }
+
+.fd-label {
+  position: absolute; transform: translate(-50%, -50%); z-index: 3; pointer-events: none;
+  background: #fff; border-radius: 8px; padding: 3px 10px; font-size: 11px; font-weight: 600;
+  white-space: nowrap; box-shadow: 0 1px 6px rgba(0,0,0,.10); border: 1px solid #e8e8e8;
+  transition: opacity .25s ease;
+}
+.fd-label.fd-strong { border-width: 1.5px; font-size: 11.5px; padding: 4px 12px; box-shadow: 0 2px 10px rgba(245,34,45,.18); }
+
+.fn {
+  position: relative; z-index: 2; display: flex; flex-direction: column;
+  border-radius: 14px; padding: 12px 14px 11px; background: #fff; border: 2px solid #ddd;
+  box-shadow: 0 2px 10px rgba(0,0,0,.05);
+  transition: transform .22s cubic-bezier(.34,1.3,.44,1), box-shadow .22s ease, opacity .25s ease, border-color .22s ease, filter .25s ease;
+}
+.fn:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,.12); }
+.fn.fn-vc { justify-content: center; }
+.fn .fn-head { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; }
+.fn .fn-ico { width: 26px; height: 26px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-size: 14px; color: #fff; flex-shrink: 0; }
+.fn .fn-title { font-size: 13.5px; font-weight: 800; line-height: 1.35; }
+.fn .fn-sub { font-size: 11px; color: #777; line-height: 1.55; margin-top: 2px; }
+.fn .fn-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.fn .chip { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: rgba(255,255,255,.75); color: #666; border: 1px solid rgba(0,0,0,.08); }
+.fn-badge {
+  position: absolute; top: -9px; right: 12px; background: #e6a23c; color: #fff;
+  font-size: 9.5px; font-weight: 700; padding: 1px 8px; border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.15); letter-spacing: .5px;
+}
+.fn-badge.red { background: #F5222D; }
+.fn-num {
+  position: absolute; top: -11px; left: -9px; width: 24px; height: 24px; border-radius: 50%;
+  background: #409eff; color: #fff; font-size: 12px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(64,158,255,.45);
+}
+
+/* 节点配色体系 */
+.fn.t-orange { border-color: #FA8C16; background: linear-gradient(180deg, #FFFBF5, #FFF7E6); }
+.fn.t-orange .fn-title { color: #AD6800; } .fn.t-orange .fn-ico { background: #FA8C16; }
+.fn.t-blue { border-color: #409eff; background: linear-gradient(180deg, #F5FAFF, #EBF5FF); }
+.fn.t-blue .fn-title { color: #1d4ed8; } .fn.t-blue .fn-ico { background: #409eff; }
+.fn.t-red { border-color: #F5222D; background: linear-gradient(180deg, #FFF8F7, #FFF1F0); }
+.fn.t-red .fn-title { color: #CF1322; } .fn.t-red .fn-ico { background: #F5222D; }
+.fn.t-green { border-color: #52C41A; background: linear-gradient(180deg, #FBFEF6, #F0FBEB); }
+.fn.t-green .fn-title { color: #389E0D; } .fn.t-green .fn-ico { background: #52C41A; }
+.fn.t-amber { border-color: #e6a23c; background: linear-gradient(135deg, #FFFBF2, #FFF3E0); }
+.fn.t-amber .fn-title { color: #d35400; } .fn.t-amber .fn-ico { background: #e6a23c; }
+.fn.t-gray { border-color: #bfc4cc; background: linear-gradient(180deg, #FAFAFA, #F2F4F7); }
+.fn.t-gray .fn-title { color: #606266; } .fn.t-gray .fn-ico { background: #909399; }
+.fn.t-manual { border-color: #c0392b; border-style: dashed; background: linear-gradient(180deg, #FEF7F7, #FEF0F0); }
+.fn.t-manual .fn-title { color: #c0392b; } .fn.t-manual .fn-ico { background: #c0392b; }
+.fn.t-gate { border-width: 2.5px; box-shadow: 0 3px 14px rgba(245,34,45,.14); }
+
+/* 悬停聚焦：高亮上下游链路，其余淡出 */
+.flowdia.focusing .fn { opacity: .16; filter: saturate(.4); }
+.flowdia.focusing .fn.fd-hot { opacity: 1; filter: none; transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,.14); }
+.flowdia.focusing .fd-edge { opacity: .07; animation-play-state: paused; }
+.flowdia.focusing .fd-edge.fd-hot { opacity: 1; stroke-width: 3.2; animation-play-state: running; }
+.flowdia.focusing .fd-label { opacity: .07; }
+.flowdia.focusing .fd-label.fd-hot { opacity: 1; }
+
+/* 进场渐入（JS 加 .fd-arm 后才启用初始隐藏，无 JS 时直接可见） */
+.flowdia.fd-arm:not(.fd-in) .fn { opacity: 0; transform: translateY(14px); }
+.flowdia.fd-arm:not(.fd-in) .fd-edge, .flowdia.fd-arm:not(.fd-in) .fd-label { opacity: 0; }
+.flowdia.fd-in .fn { transition-delay: calc(var(--i, 0) * 55ms); }
+.flowdia.fd-in.fd-done .fn { transition-delay: 0ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .fd-edge { animation: none !important; }
+  .flowdia .fn { transition: none; }
+}
+
+</style>
+</head>
+<body>
+
+<h3>flowdia 最小示例：三段式流程</h3>
+
+<!--
+  本示例已内联 flowdia.css / flowdia.js，可直接打开预览。
+  复用步骤：
+  1. 把 templates/flowdia/flowdia.css 全文复制到目标页 <style> 中
+  2. 按本页结构编写节点（.fn）与泳道条（.fd-lane），grid-area 命名并在 CSS 中定义 grid-template-areas
+  3. 在 .flowdia 内用 <script class="fd-edges" type="application/json"> 配置边
+  4. 把 templates/flowdia/flowdia.js 全文复制到目标页底部 <script> 中
+-->
+
+<style>
+  /* 每张图定义自己的栅格布局：列数 + 区域命名 */
+  #demo { grid-template-columns: repeat(6, 1fr); grid-template-areas:
+    "laneA laneA laneA laneA laneA laneA"
+    "n1 n1 n2 n2 n3 n3"; }
+</style>
+
+<div class="fd-scroll">
+  <div class="flowdia" id="demo">
+    <svg class="fd-svg" aria-hidden="true"></svg>
+
+    <div class="fd-lane lb" style="grid-area:laneA;">
+      <span>⚙️ 示例主流程</span>
+      <span class="fd-lane-sub">触发 → 处理 → 记录</span>
+    </div>
+
+    <div class="fn t-blue" data-id="n1" style="grid-area:n1;">
+      <span class="fn-num">1</span>
+      <div class="fn-head"><span class="fn-ico">⚡</span><span class="fn-title">触发事件</span></div>
+      <div class="fn-sub">事件或定时触发</div>
+      <div class="fn-chips"><span class="chip">定时</span></div>
+    </div>
+
+    <div class="fn t-amber" data-id="n2" style="grid-area:n2;">
+      <span class="fn-num">2</span>
+      <span class="fn-badge">判断</span>
+      <div class="fn-head"><span class="fn-ico">◆</span><span class="fn-title">条件判断</span></div>
+      <div class="fn-sub">满足条件则执行</div>
+    </div>
+
+    <div class="fn t-green" data-id="n3" style="grid-area:n3;">
+      <span class="fn-num">3</span>
+      <div class="fn-head"><span class="fn-ico">✅</span><span class="fn-title">执行并记录</span></div>
+      <div class="fn-chips"><span class="chip">保留 90 天</span></div>
+    </div>
+
+    <!-- 边配置：f=源节点 data-id, t=目标节点, c=颜色, label=流向标签,
+         kind=gate/channel/fan/loop/up-left（特殊路由）, enter=bottom（底部进入）,
+         solid=实线, w=线宽, lx/ox/oy=标签位置/偏移 -->
+    <script type="application/json" class="fd-edges">
+    [
+      {"f":"n1","t":"n2","c":"#409eff"},
+      {"f":"n2","t":"n3","c":"#409eff","label":"满足条件"},
+      {"f":"n3","t":"n1","c":"#9aa4b2","kind":"loop","label":"下一周期重新触发"}
+    ]
+    </script>
+  </div>
+</div>
+
+<p style="color:#909399;font-size:13px;margin-top:12px;">
+  💡 悬停任一节点可高亮其上下游链路。布线/配色/交互标准详见 docs/rules/flow-diagram-standard.md
+</p>
+
+<script>
+/* ============================================================
+ * flowdia · 交互式流程图组件（JS）
+ * 标准文档：docs/rules/flow-diagram-standard.md
+ * 功能：SVG 连线路由（直线/肘形/扇出/通道/回环/上绕）、流向动画、
+ *       悬停链路高亮、进场渐入、ResizeObserver 自适应重绘
+ * 用法：页面底部 <script> 注入本文件内容；每个 .flowdia 容器内
+ *       以 <script type="application/json" class="fd-edges"> 配置边
+ * ============================================================ */
+(function () {
+  const diagrams = document.querySelectorAll('.flowdia');
+  if (!diagrams.length) return;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  function rectOf(el, root) {
+    const r = el.getBoundingClientRect(), p = root.getBoundingClientRect();
+    return {
+      x: r.left - p.left, y: r.top - p.top, w: r.width, h: r.height,
+      cx: r.left - p.left + r.width / 2, cy: r.top - p.top + r.height / 2,
+      left: r.left - p.left, right: r.right - p.left,
+      top: r.top - p.top, bottom: r.bottom - p.top
+    };
+  }
+
+  function orthPath(pts, r) {
+    let d = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i - 1], [cx, cy] = pts[i], [nx, ny] = pts[i + 1];
+      const v1x = cx - px, v1y = cy - py, v2x = nx - cx, v2y = ny - cy;
+      const l1 = Math.hypot(v1x, v1y), l2 = Math.hypot(v2x, v2y);
+      if (!l1 || !l2) continue;
+      const rr = Math.min(r, l1 / 2, l2 / 2);
+      const sx = cx - (v1x / l1) * rr, sy = cy - (v1y / l1) * rr;
+      const ex = cx + (v2x / l2) * rr, ey = cy + (v2y / l2) * rr;
+      d += ` L${sx},${sy} Q${cx},${cy} ${ex},${ey}`;
+    }
+    const last = pts[pts.length - 1];
+    d += ` L${last[0]},${last[1]}`;
+    return d;
+  }
+
+  function build(dia) {
+    const svg = dia.querySelector('.fd-svg');
+    const edges = JSON.parse(dia.querySelector('.fd-edges').textContent);
+    dia._edges = edges;
+    dia.querySelectorAll('.fd-label').forEach(l => l.remove());
+    svg.innerHTML = '';
+    const W = dia.offsetWidth, H = dia.offsetHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+
+    const defs = document.createElementNS(NS, 'defs');
+    svg.appendChild(defs);
+    const markers = {};
+    function marker(color) {
+      if (markers[color]) return markers[color];
+      const id = 'fdm-' + color.replace(/[^0-9a-fA-F]/g, '');
+      const m = document.createElementNS(NS, 'marker');
+      m.setAttribute('id', id); m.setAttribute('markerWidth', '11'); m.setAttribute('markerHeight', '11');
+      m.setAttribute('refX', '8.6'); m.setAttribute('refY', '4'); m.setAttribute('orient', 'auto');
+      const p = document.createElementNS(NS, 'path');
+      p.setAttribute('d', 'M0,0.4 L9.6,4 L0,7.6 Z'); p.setAttribute('fill', color);
+      p.setAttribute('stroke-linejoin', 'round');
+      m.appendChild(p); defs.appendChild(m); markers[color] = id;
+      return id;
+    }
+
+    const nodes = {};
+    dia.querySelectorAll('.fn[data-id]').forEach(n => { nodes[n.dataset.id] = rectOf(n, dia); });
+
+    edges.forEach(e => {
+      const a = nodes[e.f], b = nodes[e.t];
+      if (!a || !b) return;
+      let d;
+      const dx = b.cx - a.cx, dy = b.cy - a.cy;
+      if (e.kind === 'loop') {
+        const ly = H - 16;
+        d = orthPath([[a.cx, a.bottom], [a.cx, ly], [b.cx, ly], [b.cx, b.bottom]], 10);
+      } else if (e.kind === 'gate') {
+        // 直角肘形：源底部中央垂直下行 → 卡片上方 26px 净空横移 → 落入目标顶部
+        const yt = b.top - 26;
+        d = orthPath([[a.cx, a.bottom], [a.cx, yt], [b.cx, yt], [b.cx, b.top]], 10);
+      } else if (e.kind === 'channel') {
+        // 右侧空列通道：源底部右出 → 右移入空列 → 垂直下行 → 卡片上方 26px 净空横移 → 落入目标顶部
+        const x0 = a.right - 14, x1 = a.right + 14, yt = b.top - 26;
+        d = orthPath([[x0, a.bottom], [x0, a.bottom + 14], [x1, a.bottom + 14], [x1, yt], [b.cx, yt], [b.cx, b.top]], 10);
+      } else if (e.kind === 'fan') {
+        // 扇出肘形：源右侧指定高度出 → 独立竖向通道 → 目标左侧水平进入
+        const y0 = a.top + a.h * (e.fy || 0.5), laneX = a.right + (e.lane || 24);
+        d = orthPath([[a.right, y0], [laneX, y0], [laneX, b.cy], [b.left, b.cy]], 8);
+      } else if (e.kind === 'up-left') {
+        const sx = a.left + 18, txp = b.right - 18;
+        d = `M${sx},${a.top} C${sx},${a.top - 42} ${txp},${b.bottom + 42} ${txp},${b.bottom}`;
+      } else if (Math.abs(dy) < 8) {
+        const h = Math.max(30, Math.abs(dx) / 2);
+        d = `M${a.right},${a.cy} C${a.right + h},${a.cy} ${b.left - h},${b.cy} ${b.left},${b.cy}`;
+      } else if (Math.abs(dx) < 8) {
+        const h = Math.max(24, Math.abs(dy) / 2);
+        d = `M${a.cx},${a.bottom} C${a.cx},${a.bottom + h} ${b.cx},${b.top - h} ${b.cx},${b.top}`;
+      } else if (e.enter === 'bottom') {
+        const sx = a.right, txp = b.cx + (e.tx || 0);
+        d = `M${sx},${a.cy} C${sx + 50},${a.cy} ${txp},${b.bottom + 42} ${txp},${b.bottom}`;
+      } else {
+        const rightward = b.cx > a.cx;
+        const sx = rightward ? a.right : a.left, txp = rightward ? b.left : b.right;
+        const h = Math.max(40, Math.abs(dx) / 2);
+        d = `M${sx},${a.cy} C${sx + (rightward ? h : -h)},${a.cy} ${txp + (rightward ? -h : h)},${b.cy} ${txp},${b.cy}`;
+      }
+
+      const color = e.c || '#9aa4b2';
+      const path = document.createElementNS(NS, 'path');
+      path.setAttribute('d', d);
+      path.setAttribute('class', 'fd-edge' + (e.solid ? ' fd-solid' : '') + (e.kind === 'loop' ? ' fd-loop' : ''));
+      path.setAttribute('stroke', color);
+      if (e.w) path.style.strokeWidth = e.w;
+      path.setAttribute('marker-end', `url(#${marker(color)})`);
+      path.dataset.f = e.f; path.dataset.t = e.t;
+      svg.appendChild(path);
+
+      if (e.label) {
+        const pt = path.getPointAtLength(path.getTotalLength() * (e.lx || 0.5));
+        const lb = document.createElement('div');
+        lb.className = 'fd-label' + (e.strong ? ' fd-strong' : '');
+        lb.textContent = e.label;
+        lb.style.left = (pt.x + (e.ox || 0)) + 'px'; lb.style.top = (pt.y + (e.oy || 0)) + 'px';
+        lb.style.color = color; lb.style.borderColor = color + '55';
+        lb.dataset.f = e.f; lb.dataset.t = e.t;
+        dia.appendChild(lb);
+      }
+    });
+  }
+
+  function wire(dia) {
+    dia.querySelectorAll('.fn[data-id]').forEach(n => {
+      n.addEventListener('mouseenter', () => {
+        const id = n.dataset.id;
+        dia.classList.add('focusing');
+        n.classList.add('fd-hot');
+        (dia._edges || []).forEach(e => {
+          if (e.f !== id && e.t !== id) return;
+          const other = e.f === id ? e.t : e.f;
+          const on = dia.querySelector(`.fn[data-id="${other}"]`);
+          if (on) on.classList.add('fd-hot');
+          dia.querySelectorAll(`path.fd-edge[data-f="${e.f}"][data-t="${e.t}"], .fd-label[data-f="${e.f}"][data-t="${e.t}"]`)
+            .forEach(el => el.classList.add('fd-hot'));
+        });
+      });
+      n.addEventListener('mouseleave', () => {
+        dia.classList.remove('focusing');
+        dia.querySelectorAll('.fd-hot').forEach(el => el.classList.remove('fd-hot'));
+      });
+    });
+  }
+
+  diagrams.forEach(dia => {
+    dia.classList.add('fd-arm');
+    // 节点进场阶梯延迟
+    dia.querySelectorAll('.fn[data-id]').forEach((n, i) => n.style.setProperty('--i', i));
+    build(dia);
+    wire(dia);
+
+    // 进场动画
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        dia.classList.add('fd-in');
+        const cnt = dia.querySelectorAll('.fn[data-id]').length;
+        setTimeout(() => dia.classList.add('fd-done'), cnt * 55 + 700);
+        io.disconnect();
+      });
+    }, { threshold: 0.15 });
+    io.observe(dia);
+
+    // 自适应重绘
+    let raf = null;
+    const schedule = () => { if (raf) return; raf = requestAnimationFrame(() => { raf = null; build(dia); }); };
+    if (window.ResizeObserver) new ResizeObserver(schedule).observe(dia);
+    window.addEventListener('load', schedule);
+    setTimeout(schedule, 600);
+  });
+})();
+
+</script>
+
+</body>
+</html>
