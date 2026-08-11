@@ -554,18 +554,18 @@ pre.code .cmd{color:#61afef}
   <p>总指挥根据用户输入的关键词匹配任务类型，按下表路由到对应 Agent 或直接执行。</p>
   <div class="card tight">
     <table class="tbl">
-      <thead><tr><th>类型</th><th>触发命令</th><th>调度方式</th><th>对应文档</th></tr></thead>
+      <thead><tr><th>类型</th><th>触发命令</th><th>触发词语</th><th>调度方式</th><th>对应文档</th></tr></thead>
       <tbody>
-        <tr><td class="pri">prd</td><td><code>/prd-write</code></td><td>调度 Agent</td><td>docs/agents/prd_agent.md</td></tr>
-        <tr><td class="pri">proto</td><td><code>/proto-design</code></td><td>调度 Agent</td><td>docs/agents/proto_agent.md</td></tr>
-        <tr><td class="pri">restore</td><td><code>/restore-page</code></td><td>调度 Agent</td><td>docs/agents/restore_agent.md</td></tr>
-        <tr><td class="pri">kb</td><td><code>/manage-kb</code></td><td>调度 Agent</td><td>docs/agents/kb_agent.md</td></tr>
-        <tr><td class="pri">ui-standard</td><td><code>/manage-ui-standard</code></td><td>调度 Agent</td><td>docs/agents/ui_standard_agent.md</td></tr>
-        <tr><td class="pri">version</td><td><code>/manage-version</code></td><td>直接执行</td><td>docs/pipelines/version-workflow.md</td></tr>
-        <tr><td class="pri">doc</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/doc-pipeline.md</td></tr>
-        <tr><td class="pri">diagram</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/diagram-workflow.md</td></tr>
-        <tr><td class="pri">component</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/component-workflow.md</td></tr>
-        <tr><td class="pri">multi</td><td>自然语言</td><td>拆解串行</td><td>按上述路由逐个调度</td></tr>
+        <tr><td class="pri">prd</td><td><code>/prd-write</code></td><td>写PRD · 需求文档 · PRD</td><td>调度 Agent</td><td>docs/agents/prd_agent.md</td></tr>
+        <tr><td class="pri">proto</td><td><code>/proto-design</code></td><td>原型 · prototype · 交互设计</td><td>调度 Agent</td><td>docs/agents/proto_agent.md</td></tr>
+        <tr><td class="pri">restore</td><td><code>/restore-page</code></td><td>复原 · restore · 还原</td><td>调度 Agent</td><td>docs/agents/restore_agent.md</td></tr>
+        <tr><td class="pri">kb</td><td><code>/manage-kb</code></td><td>知识库 · KB · knowledge</td><td>调度 Agent</td><td>docs/agents/kb_agent.md</td></tr>
+        <tr><td class="pri">ui-standard</td><td><code>/manage-ui-standard</code></td><td>UI规范 · 样式规范 · 交互规范 · 控件库 · 页面框架</td><td>调度 Agent</td><td>docs/agents/ui_standard_agent.md</td></tr>
+        <tr><td class="pri">version</td><td><code>/manage-version</code></td><td>版本管理 · 创建版本 · 切换版本 · 归档</td><td>直接执行</td><td>docs/pipelines/version-workflow.md</td></tr>
+        <tr><td class="pri">doc</td><td>自然语言</td><td>操作文档 · 使用说明 · 编写文档</td><td>直接执行</td><td>docs/pipelines/doc-pipeline.md</td></tr>
+        <tr><td class="pri">diagram</td><td>自然语言</td><td>流程图 · 画图 · 架构图 · 脑图</td><td>直接执行</td><td>docs/pipelines/diagram-workflow.md</td></tr>
+        <tr><td class="pri">component</td><td>自然语言</td><td>组件 · 控件库 · 模版</td><td>直接执行</td><td>docs/pipelines/component-workflow.md</td></tr>
+        <tr><td class="pri">multi</td><td>自然语言</td><td>多个任务 · 同时 · 并且</td><td>拆解串行</td><td>按上述路由逐个调度</td></tr>
       </tbody>
     </table>
   </div>
