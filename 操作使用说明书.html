@@ -74,15 +74,26 @@ a:hover{text-decoration:underline}
 }
 .sidebar .nav-group{padding:0}
 .sidebar .nav-group .grp-ttl{padding:14px 20px 6px;font-size:var(--font-size-xs);color:var(--color-text-secondary);font-weight:var(--font-weight-medium);letter-spacing:.5px;text-transform:uppercase}
-.sidebar .nav-group a{
+.sidebar .nav-group .ch-link{
   display:flex;align-items:center;gap:10px;padding:9px 20px;
   color:var(--color-text-regular);font-size:var(--font-size-sm);
   border-left:3px solid transparent;transition:all .15s;
 }
-.sidebar .nav-group a:hover{background:var(--color-bg-hover);text-decoration:none}
-.sidebar .nav-group a.active{background:var(--bg-state-b);color:var(--color-primary);border-left-color:var(--color-primary);font-weight:var(--font-weight-medium)}
-.sidebar .nav-group a .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg-state-d);color:var(--color-text-regular);font-size:11px;font-weight:var(--font-weight-semibold);flex-shrink:0}
-.sidebar .nav-group a.active .num{background:var(--color-primary);color:#fff}
+.sidebar .nav-group .ch-link:hover{background:var(--color-bg-hover);text-decoration:none}
+.sidebar .nav-group .ch-link.active{background:var(--bg-state-b);color:var(--color-primary);border-left-color:var(--color-primary);font-weight:var(--font-weight-medium)}
+.sidebar .nav-group .ch-link .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg-state-d);color:var(--color-text-regular);font-size:11px;font-weight:var(--font-weight-semibold);flex-shrink:0}
+.sidebar .nav-group .ch-link.active .num{background:var(--color-primary);color:#fff}
+.sidebar .nav-group .ch-link .toggle{margin-left:auto;font-size:9px;color:var(--color-text-secondary);transition:transform .2s;flex-shrink:0}
+.sidebar .nav-ch.open .ch-link .toggle{transform:rotate(180deg)}
+.sidebar .nav-ch.no-sub .ch-link .toggle{display:none}
+/* 子菜单（3级） */
+.sidebar .nav-group .sub-nav{max-height:0;overflow:hidden;transition:max-height .3s ease}
+.sidebar .nav-ch.open .sub-nav{max-height:600px}
+.sidebar .nav-group .sub-nav a{display:block;padding:6px 20px 6px 50px;color:var(--color-text-secondary);font-size:var(--font-size-xs);border-left:3px solid transparent;transition:all .15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar .nav-group .sub-nav a:hover{color:var(--color-primary);text-decoration:none;background:var(--color-bg-hover)}
+.sidebar .nav-group .sub-nav a.active{color:var(--color-primary);font-weight:var(--font-weight-medium);border-left-color:var(--color-primary);background:var(--bg-state-b)}
+/* 小节锚点偏移 */
+h3.sec-ttl[id]{scroll-margin-top:calc(var(--topbar-h) + 16px)}
 
 /* 遮罩（移动端） */
 .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:85}
@@ -258,19 +269,19 @@ pre.code .cmd{color:#61afef}
 
 <!-- ========== 侧栏 ========== -->
 <aside class="sidebar" id="sidebar">
-  <nav class="nav-group">
+  <nav class="nav-group" id="navGroup">
     <div class="grp-ttl">入门</div>
-    <a href="#ch1"><span class="num">1</span>认识工作站</a>
-    <a href="#ch2"><span class="num">2</span>快速开始</a>
+    <div class="nav-ch" data-ch="1"><a href="#ch1" class="ch-link"><span class="num">1</span>认识工作站<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="2"><a href="#ch2" class="ch-link"><span class="num">2</span>快速开始<span class="toggle">▾</span></a></div>
     <div class="grp-ttl">使用</div>
-    <a href="#ch3"><span class="num">3</span>功能模块与 Agent</a>
-    <a href="#ch4"><span class="num">4</span>任务路由与触发</a>
-    <a href="#ch5"><span class="num">5</span>操作流程</a>
+    <div class="nav-ch" data-ch="3"><a href="#ch3" class="ch-link"><span class="num">3</span>功能模块与 Agent<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="4"><a href="#ch4" class="ch-link"><span class="num">4</span>任务路由与触发<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="5"><a href="#ch5" class="ch-link"><span class="num">5</span>操作流程<span class="toggle">▾</span></a></div>
     <div class="grp-ttl">参考</div>
-    <a href="#ch6"><span class="num">6</span>命令速查</a>
-    <a href="#ch7"><span class="num">7</span>版本管理</a>
-    <a href="#ch8"><span class="num">8</span>质量与检验</a>
-    <a href="#ch9"><span class="num">9</span>常见问题</a>
+    <div class="nav-ch" data-ch="6"><a href="#ch6" class="ch-link"><span class="num">6</span>命令速查<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="7"><a href="#ch7" class="ch-link"><span class="num">7</span>版本管理<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="8"><a href="#ch8" class="ch-link"><span class="num">8</span>质量与检验<span class="toggle">▾</span></a></div>
+    <div class="nav-ch" data-ch="9"><a href="#ch9" class="ch-link"><span class="num">9</span>常见问题<span class="toggle">▾</span></a></div>
   </nav>
 </aside>
 <div class="overlay" id="overlay"></div>
@@ -905,34 +916,38 @@ pre.code .cmd{color:#61afef}
 
 <script>
 (function(){
-  // ===== scrollspy 侧栏高亮 =====
-  var links = document.querySelectorAll('.sidebar a[href^="#"]');
-  var sections = [];
-  links.forEach(function(l){
-    var id = l.getAttribute('href').slice(1);
-    var sec = document.getElementById(id);
-    if(sec) sections.push({link:l, sec:sec});
+  // ===== 1. 为每个 nav-ch 注入子菜单 + 生成 sec-ttl id =====
+  var chSections = document.querySelectorAll('section[id^="ch"]');
+  document.querySelectorAll('.nav-ch').forEach(function(navCh){
+    var chNum = navCh.dataset.ch;
+    var sec = document.getElementById('ch'+chNum);
+    if(!sec){ navCh.classList.add('no-sub'); return; }
+    var subs = sec.querySelectorAll('.sec-ttl');
+    if(subs.length === 0){ navCh.classList.add('no-sub'); return; }
+    var subNav = document.createElement('div');
+    subNav.className = 'sub-nav';
+    subs.forEach(function(s, i){
+      s.id = 's' + chNum + '-' + (i+1);
+      var a = document.createElement('a');
+      a.href = '#' + s.id;
+      a.textContent = s.textContent.trim();
+      a.setAttribute('data-sub', s.id);
+      subNav.appendChild(a);
+    });
+    navCh.appendChild(subNav);
   });
 
-  function spy(){
-    var pos = window.scrollY + 100;
-    var cur = sections[0];
-    sections.forEach(function(s){ if(s.sec.offsetTop <= pos) cur = s; });
-    links.forEach(function(l){ l.classList.remove('active'); });
-    if(cur) cur.link.classList.add('active');
-  }
-
-  // ===== 平滑滚动（修正顶栏偏移）=====
-  links.forEach(function(l){
+  // ===== 2. 平滑滚动 + 章节展开 =====
+  document.querySelectorAll('.sidebar a[href^="#"]').forEach(function(l){
     l.addEventListener('click', function(e){
       e.preventDefault();
       var id = this.getAttribute('href').slice(1);
       var sec = document.getElementById(id);
       if(sec){
-        var top = sec.offsetTop - 72;
-        window.scrollTo({top:top, behavior:'smooth'});
+        window.scrollTo({top:sec.offsetTop - 72, behavior:'smooth'});
       }
-      // 移动端点击后收起侧栏
+      var navCh = this.closest('.nav-ch');
+      if(navCh) navCh.classList.add('open');
       if(window.innerWidth <= 768){
         document.getElementById('sidebar').classList.remove('open');
         document.getElementById('overlay').classList.remove('show');
@@ -940,29 +955,55 @@ pre.code .cmd{color:#61afef}
     });
   });
 
-  // ===== 回到顶部 =====
+  // ===== 3. scrollspy（章节 + 小节双级）=====
+  var chLinks = document.querySelectorAll('.nav-ch .ch-link');
+  var allTargets = [];
+  chSections.forEach(function(sec){
+    var chNum = sec.id.replace('ch','');
+    allTargets.push({el:sec, type:'ch', chNum:chNum});
+    sec.querySelectorAll('.sec-ttl').forEach(function(s){
+      allTargets.push({el:s, type:'sub'});
+    });
+  });
+  function spy(){
+    var pos = window.scrollY + 110;
+    var curCh = null, curSubId = null;
+    allTargets.forEach(function(t){
+      if(t.el.offsetTop <= pos){
+        if(t.type === 'ch') curCh = t.chNum;
+        else curSubId = t.el.id;
+      }
+    });
+    chLinks.forEach(function(l){
+      var navCh = l.parentElement;
+      if(navCh.dataset.ch === curCh){ l.classList.add('active'); navCh.classList.add('open'); }
+      else l.classList.remove('active');
+    });
+    document.querySelectorAll('.sub-nav a').forEach(function(l){
+      if(l.dataset.sub === curSubId) l.classList.add('active');
+      else l.classList.remove('active');
+    });
+  }
+
+  // ===== 4. 回到顶部 =====
   var bt = document.getElementById('backTop');
   bt.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
-
   window.addEventListener('scroll', function(){
     spy();
     if(window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
   });
 
-  // ===== 移动端抽屉 =====
-  var menuBtn = document.getElementById('menuBtn');
-  var sidebar = document.getElementById('sidebar');
-  var overlay = document.getElementById('overlay');
-  menuBtn.addEventListener('click', function(){
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('show');
+  // ===== 5. 移动端抽屉 =====
+  document.getElementById('menuBtn').addEventListener('click', function(){
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlay').classList.toggle('show');
   });
-  overlay.addEventListener('click', function(){
-    sidebar.classList.remove('open');
-    overlay.classList.remove('show');
+  document.getElementById('overlay').addEventListener('click', function(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
   });
 
-  // 初始高亮第一章
+  // 初始
   spy();
 })();
 </script>
