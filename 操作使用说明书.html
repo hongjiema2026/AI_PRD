@@ -540,6 +540,35 @@ pre.code .cmd{color:#61afef}
       <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
     </div>
   </div>
+
+  <h3 class="sec-ttl">3.7 头脑风暴（brainstorming）· 通用前置技能</h3>
+  <div class="agent-card" style="border-top-color:#6a5acd">
+    <div class="hd"><span class="nm">brainstorming · 头脑风暴</span><span class="tag tag-default">ZCode 通用 · 非项目自带</span></div>
+    <div class="role">在任何创造性工作前，通过协作对话把想法变成完整的设计和规范。<strong>自动触发</strong>（非 Slash 命令），适用于写 PRD、原型设计、新功能 / 新模块启动前的需求与方案探索。</div>
+    <div class="pipeline">
+      <span class="stg">探索上下文</span><span class="arr">→</span>
+      <span class="stg">澄清问题</span><span class="arr">→</span>
+      <span class="stg">提 2-3 方案</span><span class="arr">→</span>
+      <span class="stg">呈现设计</span><span class="arr">→</span>
+      <span class="stg">获批</span><span class="arr">→</span>
+      <span class="stg">设计文档</span>
+    </div>
+    <ul>
+      <li><strong>HARD-GATE：</strong>设计获批前禁止任何实现动作（与项目卡点①理念一致，可视为任务流水线上游）</li>
+      <li><strong>提问方式：</strong>一次一个问题，优先多选，聚焦目的 / 约束 / 成功标准</li>
+      <li><strong>终态：</strong>调用 writing-plans 转入实现计划（不直接写代码）</li>
+      <li><strong>适用场景：</strong>需求不明确、方案有多种可能、新功能 / 新模块启动前</li>
+    </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · 需求探索</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">我想给工作站加一个数据导出功能</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">brainstorming</div><div class="body">好，先确认范围：导出的是哪个数据？（<code>全部版本</code> / <code>当前版本</code> / <code>指定类型</code>）</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">当前版本的 PRD 和原型</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">brainstorming</div><div class="body">明白。提 2 个方案：<br>① <span class="stage">一键导出 ZIP</span>（含 PRD + 原型，推荐）<br>② <span class="stage">分类型逐个导出</span><br>推荐 ①，用户体验更连贯。设计要点：导出按钮放版本详情页、ZIP 内按类型分目录。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">方案①，可以</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">brainstorming</div><div class="body">设计已写入 <code>docs/superpowers/specs/2026-08-11-数据导出-design.md</code>，请审阅后我转入实现计划。</div></div></div>
+    </div>
+  </div>
 </section>
 
 <!-- ==================== 第四章 ==================== -->
