@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PM-Workstation · 操作使用说明书</title>
+<!--
+  PM-Workstation 操作使用说明书
+  · 单文件自包含，零 CDN 依赖，浏览器双击即开
+  · CSS 变量同步自 templates/components/base-styles.css（项目唯一权威设计令牌，W01）
+  · 本文件为项目根目录说明文档，非版本产物/流水线产物
+-->
+<style>
+/* ===== 设计令牌（复制自 base-styles.css :root）===== */
+:root{
+  --color-state-a:#e6a23c;--bg-state-a:#fdf6ec;--border-state-a:#f5dab1;
+  --color-state-b:#409eff;--bg-state-b:#ecf5ff;--border-state-b:#b3d8ff;
+  --color-state-c:#67c23a;--bg-state-c:#f0f9eb;--border-state-c:#c2e7b0;
+  --color-state-d:#606266;--bg-state-d:#f5f7fa;--border-state-d:#dcdfe6;
+  --color-primary:#409eff;--color-primary-hover:#66b1ff;--color-primary-active:#3a8ee6;
+  --color-success:#67c23a;--color-warning:#e6a23c;--color-danger:#f56c6c;--color-info:#909399;
+  --color-white:#fff;--color-bg-page:#f0f2f5;--color-bg-white:#fff;--color-bg-hover:#f5f7fa;
+  --color-text-primary:#303133;--color-text-regular:#606266;--color-text-secondary:#909399;
+  --color-text-placeholder:#c0c4cc;--color-text-white:#fff;
+  --color-border:#e4e7ed;--color-border-light:#ebeef5;--color-divider:#dcdfe6;
+  --font-size-xs:12px;--font-size-sm:13px;--font-size-base:14px;--font-size-lg:16px;
+  --font-size-xl:18px;--font-size-2xl:20px;--font-size-3xl:24px;--font-size-4xl:30px;
+  --font-weight-normal:400;--font-weight-medium:500;--font-weight-semibold:600;--font-weight-bold:700;
+  --line-height-tight:1.3;--line-height-base:1.6;--line-height-loose:1.8;
+  --spacing-xs:4px;--spacing-sm:8px;--spacing-md:16px;--spacing-lg:24px;--spacing-xl:32px;
+  --radius-sm:4px;--radius-md:8px;--radius-lg:12px;--radius-pill:16px;
+  --shadow-sm:0 1px 4px rgba(0,0,0,.04);--shadow-md:0 4px 12px rgba(0,0,0,.08);--shadow-lg:0 8px 24px rgba(0,0,0,.12);
+  --font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --font-family-mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+  --topbar-h:56px;--sidebar-w:260px;
+}
+
+/* ===== 重置 ===== */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;font-family:var(--font-family);font-size:var(--font-size-base);
+  line-height:var(--line-height-base);color:var(--color-text-primary);background:var(--color-bg-page);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--color-primary);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* ===== 顶栏 ===== */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:var(--topbar-h);z-index:100;
+  background:var(--color-bg-white);border-bottom:1px solid var(--color-border);
+  box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;padding:0 var(--spacing-xl);
+}
+.topbar .logo{display:flex;align-items:center;gap:10px;flex-shrink:0;width:calc(var(--sidebar-w) - 32px)}
+.topbar .logo .mark{
+  width:32px;height:32px;border-radius:var(--radius-md);
+  background:linear-gradient(135deg,var(--color-primary),#6a5acd);
+  color:#fff;display:flex;align-items:center;justify-content:center;
+  font-weight:var(--font-weight-bold);font-size:15px;flex-shrink:0;
+}
+.topbar .logo .ttl{font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)}
+.topbar .logo .ttl small{display:block;font-size:var(--font-size-xs);font-weight:var(--font-weight-normal);color:var(--color-text-secondary);margin-top:2px}
+.topbar .meta{margin-left:auto;display:flex;align-items:center;gap:var(--spacing-md);color:var(--color-text-secondary);font-size:var(--font-size-sm)}
+.topbar .meta .ver{background:var(--bg-state-b);color:var(--color-primary);border:1px solid var(--border-state-b);padding:2px 10px;border-radius:var(--radius-pill);font-size:var(--font-size-xs);font-weight:var(--font-weight-medium)}
+.topbar .menu-btn{display:none;background:none;border:none;font-size:20px;color:var(--color-text-regular);cursor:pointer;padding:6px}
+
+/* ===== 侧栏 ===== */
+.sidebar{
+  position:fixed;top:var(--topbar-h);left:0;bottom:0;width:var(--sidebar-w);
+  background:var(--color-bg-white);border-right:1px solid var(--color-border);
+  overflow-y:auto;z-index:90;padding:var(--spacing-md) 0;
+}
+.sidebar .nav-group{padding:0}
+.sidebar .nav-group .grp-ttl{padding:14px 20px 6px;font-size:var(--font-size-xs);color:var(--color-text-secondary);font-weight:var(--font-weight-medium);letter-spacing:.5px;text-transform:uppercase}
+.sidebar .nav-group a{
+  display:flex;align-items:center;gap:10px;padding:9px 20px;
+  color:var(--color-text-regular);font-size:var(--font-size-sm);
+  border-left:3px solid transparent;transition:all .15s;
+}
+.sidebar .nav-group a:hover{background:var(--color-bg-hover);text-decoration:none}
+.sidebar .nav-group a.active{background:var(--bg-state-b);color:var(--color-primary);border-left-color:var(--color-primary);font-weight:var(--font-weight-medium)}
+.sidebar .nav-group a .num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg-state-d);color:var(--color-text-regular);font-size:11px;font-weight:var(--font-weight-semibold);flex-shrink:0}
+.sidebar .nav-group a.active .num{background:var(--color-primary);color:#fff}
+
+/* 遮罩（移动端） */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:85}
+
+/* ===== 主内容 ===== */
+.main{margin-left:var(--sidebar-w);margin-top:var(--topbar-h);padding:var(--spacing-xl) var(--spacing-xl) 80px;max-width:1080px}
+.main{scroll-behavior:smooth}
+
+/* 章节锚点偏移 */
+section[id]{scroll-margin-top:calc(var(--topbar-h) + 16px)}
+
+/* 章节标题 */
+.chapter-head{display:flex;align-items:baseline;gap:14px;margin-bottom:var(--spacing-lg);padding-bottom:14px;border-bottom:2px solid var(--color-border-light)}
+.chapter-head .ch-num{font-size:var(--font-size-3xl);font-weight:var(--font-weight-bold);color:var(--color-primary);line-height:1}
+.chapter-head .ch-ttl{font-size:var(--font-size-3xl);font-weight:var(--font-weight-semibold);color:var(--color-text-primary);margin:0;line-height:1.2}
+.chapter-head .ch-sub{margin-left:auto;font-size:var(--font-size-xs);color:var(--color-text-secondary)}
+
+/* 小节标题 */
+.sec-ttl{font-size:var(--font-size-xl);font-weight:var(--font-weight-semibold);color:var(--color-text-primary);margin:var(--spacing-xl) 0 var(--spacing-md);padding-left:10px;border-left:4px solid var(--color-primary);line-height:1.4}
+.sec-ttl:first-of-type{margin-top:0}
+.sub-ttl{font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-text-primary);margin:var(--spacing-lg) 0 var(--spacing-sm)}
+
+p{margin:0 0 var(--spacing-md);color:var(--color-text-regular)}
+p.lead{font-size:var(--font-size-lg);color:var(--color-text-primary);line-height:var(--line-height-loose)}
+strong{color:var(--color-text-primary);font-weight:var(--font-weight-semibold)}
+ul,ol{margin:0 0 var(--spacing-md);padding-left:22px;color:var(--color-text-regular)}
+li{margin-bottom:6px;line-height:var(--line-height-base)}
+
+/* ===== 卡片 ===== */
+.card{background:var(--color-bg-white);border-radius:var(--radius-md);padding:var(--spacing-lg) 20px;box-shadow:var(--shadow-sm);margin-bottom:var(--spacing-md);border:1px solid var(--color-border-light)}
+.card.tight{padding:var(--spacing-md) 18px}
+.card h4{margin:0 0 var(--spacing-sm);font-size:var(--font-size-base);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)}
+
+/* 卡片变体 */
+.card.tip{border-left:4px solid var(--color-primary);background:linear-gradient(to right,var(--bg-state-b),var(--color-bg-white) 40%)}
+.card.warn{border-left:4px solid var(--color-warning);background:linear-gradient(to right,var(--bg-state-a),var(--color-bg-white) 40%)}
+.card.danger{border-left:4px solid var(--color-danger);background:linear-gradient(to right,#fef0f0,var(--color-bg-white) 40%)}
+.card.success{border-left:4px solid var(--color-success);background:linear-gradient(to right,var(--bg-state-c),var(--color-bg-white) 40%)}
+.card .lbl{display:inline-block;font-size:var(--font-size-xs);font-weight:var(--font-weight-bold);padding:2px 8px;border-radius:var(--radius-sm);margin-bottom:8px;letter-spacing:.5px}
+.card.tip .lbl{background:var(--color-primary);color:#fff}
+.card.warn .lbl{background:var(--color-warning);color:#fff}
+.card.danger .lbl{background:var(--color-danger);color:#fff}
+.card.success .lbl{background:var(--color-success);color:#fff}
+
+/* ===== 表格 ===== */
+.tbl{width:100%;border-collapse:collapse;background:var(--color-bg-white);border-radius:var(--radius-md);overflow:hidden;box-shadow:var(--shadow-sm);margin-bottom:var(--spacing-md)}
+.tbl th{background:var(--color-bg-hover);color:var(--color-text-regular);font-weight:var(--font-weight-medium);font-size:var(--font-size-sm);padding:11px 14px;text-align:left;white-space:nowrap;border-bottom:1px solid var(--color-border)}
+.tbl td{padding:11px 14px;border-bottom:1px solid var(--color-border-light);font-size:var(--font-size-sm);color:var(--color-text-regular);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:var(--color-bg-hover)}
+.tbl td code,.tbl th code{font-family:var(--font-family-mono);font-size:12px;background:var(--bg-state-d);color:var(--color-state-d);padding:1px 6px;border-radius:var(--radius-sm)}
+.tbl .pri{color:var(--color-primary);font-weight:var(--font-weight-medium)}
+
+/* ===== 徽标 ===== */
+.tag{display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:var(--radius-sm);font-size:var(--font-size-xs);border:1px solid;font-weight:var(--font-weight-medium);white-space:nowrap}
+.tag-success{color:var(--color-success);background:var(--bg-state-c);border-color:var(--border-state-c)}
+.tag-warning{color:var(--color-warning);background:var(--bg-state-a);border-color:var(--border-state-a)}
+.tag-danger{color:var(--color-danger);background:#fef0f0;border-color:#fbc4c4}
+.tag-info{color:var(--color-primary);background:var(--bg-state-b);border-color:var(--border-state-b)}
+.tag-default{color:var(--color-state-d);background:var(--bg-state-d);border-color:var(--border-state-d)}
+.tag-lg{height:26px;font-size:var(--font-size-sm);padding:0 12px}
+
+/* ===== 代码块 ===== */
+code.inline{font-family:var(--font-family-mono);font-size:12.5px;background:var(--bg-state-d);color:var(--color-state-d);padding:1px 6px;border-radius:var(--radius-sm)}
+pre.code{font-family:var(--font-family-mono);font-size:12.5px;background:#282c34;color:#abb2bf;padding:14px 18px;border-radius:var(--radius-md);overflow-x:auto;margin:0 0 var(--spacing-md);line-height:1.7}
+pre.code .c{color:#5c6370;font-style:italic}
+pre.code .k{color:#c678dd}
+pre.code .s{color:#98c379}
+pre.code .cmd{color:#61afef}
+
+/* ===== 步骤组件 ===== */
+.steps{counter-reset:step;margin:var(--spacing-md) 0}
+.step{position:relative;padding:0 0 var(--spacing-md) 44px}
+.step::before{counter-increment:step;content:counter(step);position:absolute;left:0;top:0;width:28px;height:28px;border-radius:50%;background:var(--color-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:var(--font-weight-bold)}
+.step::after{content:"";position:absolute;left:13px;top:30px;bottom:0;width:2px;background:var(--color-border)}
+.step:last-child{padding-bottom:0}
+.step:last-child::after{display:none}
+.step h5{margin:4px 0 4px;font-size:var(--font-size-base);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)}
+.step p{margin:0;font-size:var(--font-size-sm)}
+
+/* ===== 特性卡片网格 ===== */
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:var(--spacing-md);margin:var(--spacing-md) 0}
+.feat{background:var(--color-bg-white);border-radius:var(--radius-md);padding:var(--spacing-lg) 20px;box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);transition:transform .2s,box-shadow .2s}
+.feat:hover{transform:translateY(-3px);box-shadow:var(--shadow-md)}
+.feat .ico{width:44px;height:44px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px}
+.feat h4{margin:0 0 6px;font-size:var(--font-size-base);font-weight:var(--font-weight-semibold)}
+.feat p{margin:0;font-size:var(--font-size-sm);color:var(--color-text-secondary);line-height:var(--line-height-base)}
+
+/* ===== Agent 卡片 ===== */
+.agent-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--spacing-md);margin:var(--spacing-md) 0}
+.agent-card{background:var(--color-bg-white);border-radius:var(--radius-md);padding:var(--spacing-lg);box-shadow:var(--shadow-sm);border:1px solid var(--color-border-light);border-top:3px solid var(--color-primary)}
+.agent-card .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.agent-card .hd .nm{font-size:var(--font-size-lg);font-weight:var(--font-weight-semibold);color:var(--color-text-primary)}
+.agent-card .role{font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-bottom:var(--spacing-sm)}
+.agent-card .pipeline{display:flex;align-items:center;flex-wrap:wrap;gap:4px;margin:var(--spacing-sm) 0;padding:10px 12px;background:var(--color-bg-hover);border-radius:var(--radius-sm)}
+.agent-card .pipeline .stg{font-size:var(--font-size-xs);font-weight:var(--font-weight-medium);color:var(--color-text-regular);background:var(--color-bg-white);padding:2px 8px;border-radius:var(--radius-sm);border:1px solid var(--color-border)}
+.agent-card .pipeline .arr{color:var(--color-text-secondary);font-size:11px}
+.agent-card ul{margin:var(--spacing-sm) 0 0;padding-left:18px}
+.agent-card ul li{font-size:var(--font-size-sm)}
+
+/* ===== FAQ ===== */
+.faq-item{background:var(--color-bg-white);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);margin-bottom:10px;border:1px solid var(--color-border-light);overflow:hidden}
+.faq-item summary{padding:14px 18px;font-size:var(--font-size-base);font-weight:var(--font-weight-medium);color:var(--color-text-primary);cursor:pointer;list-style:none;display:flex;align-items:center;gap:10px}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::before{content:"Q";flex-shrink:0;width:22px;height:22px;border-radius:50%;background:var(--bg-state-b);color:var(--color-primary);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:var(--font-weight-bold)}
+.faq-item[open] summary::before{content:"A";background:var(--bg-state-c);color:var(--color-success)}
+.faq-item .ans{padding:0 18px 14px 50px;font-size:var(--font-size-sm);color:var(--color-text-regular);line-height:var(--line-height-base)}
+
+/* ===== 流程图 SVG 容器 ===== */
+.flow-wrap{background:var(--color-bg-white);border-radius:var(--radius-md);padding:var(--spacing-lg);box-shadow:var(--shadow-sm);margin:var(--spacing-md) 0;overflow-x:auto}
+.flow-wrap .cap{font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:10px;font-style:italic}
+
+/* ===== 回到顶部 ===== */
+.back-top{position:fixed;right:28px;bottom:28px;width:44px;height:44px;border-radius:50%;background:var(--color-primary);color:#fff;border:none;font-size:20px;cursor:pointer;box-shadow:var(--shadow-md);opacity:0;visibility:hidden;transition:all .25s;z-index:80;display:flex;align-items:center;justify-content:center}
+.back-top.show{opacity:1;visibility:visible}
+.back-top:hover{background:var(--color-primary-hover);transform:translateY(-2px)}
+
+/* ===== 页脚 ===== */
+.foot{margin-top:var(--spacing-xl);padding-top:var(--spacing-lg);border-top:1px solid var(--color-border);text-align:center;color:var(--color-text-secondary);font-size:var(--font-size-xs);line-height:var(--line-height-loose)}
+.foot a{color:var(--color-text-secondary)}
+.foot a:hover{color:var(--color-primary)}
+
+/* ===== 响应式 ===== */
+@media(max-width:900px){
+  :root{--sidebar-w:240px}
+  .main{padding:var(--spacing-lg) var(--spacing-md) 80px}
+}
+@media(max-width:768px){
+  .topbar .menu-btn{display:block}
+  .topbar .logo{width:auto}
+  .topbar .logo .ttl{font-size:var(--font-size-base)}
+  .sidebar{transform:translateX(-100%);transition:transform .25s;box-shadow:var(--shadow-lg)}
+  .sidebar.open{transform:translateX(0)}
+  .overlay.show{display:block}
+  .main{margin-left:0;padding:var(--spacing-md) var(--spacing-md) 80px}
+  .chapter-head .ch-num,.chapter-head .ch-ttl{font-size:var(--font-size-2xl)}
+  .sec-ttl{font-size:var(--font-size-lg)}
+}
+</style>
+</head>
+<body>
+
+<!-- ========== 顶栏 ========== -->
+<header class="topbar">
+  <button class="menu-btn" id="menuBtn" aria-label="菜单">☰</button>
+  <div class="logo">
+    <div class="mark">PM</div>
+    <div class="ttl">PM-Workstation<small>产品经理通用项目工作站</small></div>
+  </div>
+  <div class="meta">
+    <span class="ver">v0.1.0</span>
+    <span>操作使用说明书</span>
+  </div>
+</header>
+
+<!-- ========== 侧栏 ========== -->
+<aside class="sidebar" id="sidebar">
+  <nav class="nav-group">
+    <div class="grp-ttl">入门</div>
+    <a href="#ch1"><span class="num">1</span>认识工作站</a>
+    <a href="#ch2"><span class="num">2</span>快速开始</a>
+    <div class="grp-ttl">使用</div>
+    <a href="#ch3"><span class="num">3</span>功能模块与 Agent</a>
+    <a href="#ch4"><span class="num">4</span>任务路由与触发</a>
+    <a href="#ch5"><span class="num">5</span>操作流程</a>
+    <div class="grp-ttl">参考</div>
+    <a href="#ch6"><span class="num">6</span>命令速查</a>
+    <a href="#ch7"><span class="num">7</span>版本管理</a>
+    <a href="#ch8"><span class="num">8</span>质量与检验</a>
+    <a href="#ch9"><span class="num">9</span>常见问题</a>
+  </nav>
+</aside>
+<div class="overlay" id="overlay"></div>
+
+<!-- ========== 主内容 ========== -->
+<main class="main">
+
+<!-- ==================== 第一章 ==================== -->
+<section id="ch1">
+  <div class="chapter-head">
+    <span class="ch-num">01</span>
+    <h2 class="ch-ttl">认识 PM-Workstation</h2>
+    <span class="ch-sub">项目定位 · 核心特性 · 架构</span>
+  </div>
+
+  <p class="lead">PM-Workstation 是一款基于<strong>多 Agent 流水线架构</strong>的产品经理通用项目工作站。它通过一个总指挥 Agent 调度多个专业 Agent，覆盖<strong>知识库管理、需求文档编写、原型设计、版本管理、原型复原、UI 规范维护</strong>全链路工作。</p>
+
+  <h3 class="sec-ttl">1.1 五大核心特性</h3>
+  <div class="feat-grid">
+    <div class="feat"><div class="ico" style="background:var(--bg-state-b)">🤖</div><h4>多 Agent 协作</h4><p>总指挥 Orchestrator 统一调度 6 个 Agent，每个 Agent 内部含独立子流水线，按阶段串行推进。</p></div>
+    <div class="feat"><div class="ico" style="background:var(--bg-state-c)">📦</div><h4>版本隔离</h4><p>一个需求 = 一个版本，格式 <code class="inline">{名称}_v{主}.{次}.{补丁}</code>，各版本产出物互不干扰。</p></div>
+    <div class="feat"><div class="ico" style="background:var(--bg-state-a)">🔄</div><h4>原型复原</h4><p>从线上页面 URL 一键复原为可交互原型：计划 → 爬取 → 验证，匹配度 ≥90% 方可交付。</p></div>
+    <div class="feat"><div class="ico" style="background:var(--bg-state-d)">⚡</div><h4>零构建依赖</h4><p>所有原型与文档产物为纯 HTML/CSS/JS，无需 npm/webpack，浏览器双击即可打开。</p></div>
+    <div class="feat"><div class="ico" style="background:#fef0f0">✅</div><h4>全流程检验</h4><p>每条流水线设质量门禁与评分通过线，机器可验与人工判定结合，返工最多 2 次。</p></div>
+    <div class="feat"><div class="ico" style="background:var(--bg-state-b)">🧠</div><h4>用户认知系统</h4><p>自动记忆用户偏好与反馈，反馈阈值 2 次即固化，记忆保留 90 天，输出前自动检查偏好。</p></div>
+  </div>
+
+  <h3 class="sec-ttl">1.2 多 Agent 架构总览</h3>
+  <div class="card">
+    <p>工作站采用<strong>"1 个总指挥 + 5 个业务 Agent"</strong>的调度架构。用户只需用自然语言提出需求，由总指挥解析意图、匹配任务类型、调度对应 Agent 执行，并负责版本上下文管理、Git 提交、状态同步。</p>
+    <table class="tbl">
+      <thead><tr><th style="width:24%">Agent</th><th style="width:20%">角色</th><th>职责</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Orchestrator</strong></td><td><span class="tag tag-info">总指挥</span></td><td>意图解析、版本上下文、任务分解、调度监控、Git 提交、状态刷新</td></tr>
+        <tr><td><strong>PRD-Agent</strong></td><td><span class="tag tag-default">需求工程师</span></td><td>编写产品需求文档（PRD），含调研→图先行→撰写→可行性→评审</td></tr>
+        <tr><td><strong>Proto-Agent</strong></td><td><span class="tag tag-default">原型工程师</span></td><td>交互原型设计，含设计→实现→测试，UI 规范引用映射</td></tr>
+        <tr><td><strong>Restore-Agent</strong></td><td><span class="tag tag-default">复原工程师</span></td><td>线上页面复原为可交互原型，抓取现有代码不重新编码</td></tr>
+        <tr><td><strong>KB-Agent</strong></td><td><span class="tag tag-default">知识库管家</span></td><td>知识条目创建、爬虫文档归档、内容审核</td></tr>
+        <tr><td><strong>UI-Standard-Agent</strong></td><td><span class="tag tag-default">UI 规范管理员</span></td><td>线上实测收录 UI 控件规范，维护 UI-xx 编号库</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== 第二章 ==================== -->
+<section id="ch2">
+  <div class="chapter-head">
+    <span class="ch-num">02</span>
+    <h2 class="ch-ttl">快速开始</h2>
+    <span class="ch-sub">环境 · 安装 · 首任务</span>
+  </div>
+
+  <h3 class="sec-ttl">2.1 环境要求</h3>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>项</th><th>要求</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>Python</td><td><span class="tag tag-success">3.9+</span></td><td>需用户手动安装，Agent 不可自动安装</td></tr>
+        <tr><td>操作系统</td><td>macOS / Linux / Windows(WSL)</td><td>Windows 需通过 WSL 运行</td></tr>
+        <tr><td>浏览器</td><td>Chrome / Edge / Safari</td><td>用于预览原型与 HTML 产物</td></tr>
+        <tr><td>Git</td><td>2.20+</td><td>提交产出物（可选，无远程仓库亦可本地使用）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sec-ttl">2.2 首次安装与验收</h3>
+  <p>首次使用时，工作站会自动执行环境自检。<strong>任一项检查失败即判定为首次使用</strong>，需完成安装后方可进入正常工作流程。</p>
+
+  <h4 class="sub-ttl">安装清单（7 项自检）</h4>
+  <p>执行 <code class="inline">python3 scripts/check_env.py</code>（只读，无副作用）：</p>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>#</th><th>检查项</th><th>通过标准</th><th>缺失时的修复</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Python 版本</td><td><code>python3 --version</code> ≥ 3.9</td><td>用户手动安装</td></tr>
+        <tr><td>2</td><td>Python 依赖</td><td>requests / bs4 / yaml / lxml 可 import</td><td><code>pip install -r requirements.txt</code></td></tr>
+        <tr><td>3</td><td>关键目录</td><td>versions / docs / scripts / templates / config 存在</td><td><code>python3 scripts/init_project.py</code></td></tr>
+        <tr><td>4</td><td>关键文件</td><td>AGENTS.md / STATE.md / config/project.yaml 存在</td><td>STATE.md 缺：<code>state_manager.py init</code></td></tr>
+        <tr><td>5</td><td>项目配置</td><td>project.yaml 可解析且 version.current 非空</td><td>修复 YAML 文件</td></tr>
+        <tr><td>6</td><td>hooks 权限</td><td>.zcode/hooks 三脚本有执行位</td><td><code>chmod +x</code></td></tr>
+        <tr><td>7</td><td>settings.json 路径</td><td>Write/Edit 权限路径 = 当前项目根</td><td>替换为当前项目根绝对路径</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card tip">
+    <span class="lbl">验收</span>
+    <p style="margin:0">安装后重跑 <code class="inline">python3 scripts/check_env.py; echo $?</code>，<strong>7 项全 PASS、退出码 0</strong> 方为通过。验收失败<strong>禁止进入意图分类</strong>（启动序列步骤 0 硬门禁）。</p>
+  </div>
+
+  <h3 class="sec-ttl">2.3 三分钟跑通第一个任务</h3>
+  <div class="steps">
+    <div class="step"><h5>打开工作站</h5><p>启动后总指挥自动执行环境自检，全部 PASS 后读取版本上下文。</p></div>
+    <div class="step"><h5>创建版本（可选）</h5><p>输入"创建版本 库存调拨"，或直接使用默认版本 <code class="inline">v0.1.0</code>。</p></div>
+    <div class="step"><h5>提出需求</h5><p>用自然语言描述你的任务，例如"写一份库存调拨的 PRD"或"复原这个页面：https://…"</p></div>
+    <div class="step"><h5>审查计划（卡点①）</h5><p>总指挥输出执行计划，回复"批准 / 可以 / 执行"等批准词后开始执行。</p></div>
+    <div class="step"><h5>审查变更（卡点②）</h5><p>执行完成后展示变更摘要，回复"通过 / 审查通过"后完成提交与状态刷新。</p></div>
+  </div>
+</section>
+
+<!-- ==================== 第三章 ==================== -->
+<section id="ch3">
+  <div class="chapter-head">
+    <span class="ch-num">03</span>
+    <h2 class="ch-ttl">功能模块与 Agent</h2>
+    <span class="ch-sub">6 个 Agent 职责详解</span>
+  </div>
+
+  <h3 class="sec-ttl">3.1 Orchestrator · 总指挥</h3>
+  <div class="card">
+    <p>中枢调度角色，<strong>不执行具体业务任务</strong>，只负责解析意图、调度 Agent、汇总结果。每次启动必执行 <code class="inline">git pull</code>（有远程仓库时）。</p>
+    <p><strong>核心职责：</strong>意图解析 → 版本上下文提取 → 用户认知加载 → 任务分解（生成 task_id）→ 波次规划 → 生成任务书 → 调度监控 → 阻塞处理 → 汇总检验 → Git 提交 → 状态刷新。</p>
+    <div class="card tip tight" style="margin-top:12px">
+      <p style="margin:0"><strong>注：</strong>版本操作（创建/切换/对比/归档）与组件模版管理由总指挥<strong>直接执行</strong>，不调度 Agent；业务任务（PRD/原型/复原/KB/UI 规范）才调度对应 Agent。</p>
+    </div>
+  </div>
+
+  <h3 class="sec-ttl">3.2 PRD-Agent · 需求工程师</h3>
+  <div class="agent-card">
+    <div class="hd"><span class="nm">PRD-Agent</span><span class="tag tag-info">/prd-write</span></div>
+    <div class="role">编写产品需求文档（PRD），产出 4 章结构化文档</div>
+    <div class="pipeline">
+      <span class="stg">Researcher</span><span class="arr">→</span>
+      <span class="stg">Visualizer</span><span class="arr">→</span>
+      <span class="stg">Writer</span><span class="arr">→</span>
+      <span class="stg">Feasibility</span><span class="arr">→</span>
+      <span class="stg">Reviewer</span>
+    </div>
+    <ul>
+      <li><strong>产出：</strong>调研摘要 / 图表索引 / PRD 主体（4 章）/ 可行性报告 / 评审报告 / HTML 渲染版</li>
+      <li><strong>4 章结构：</strong>概述 · 流程与规则 · 使用场景 · 交互原型（<strong>不产出技术契约</strong>）</li>
+      <li><strong>质量门禁：</strong>Reviewer 评分 <span class="tag tag-success tag-lg">≥80</span> 通过，返工最多 2 次</li>
+      <li><strong>关键规范：</strong>图表用 Mermaid 内联（禁 PNG）；遵循 F01-F11 格式规范</li>
+    </ul>
+  </div>
+
+  <h3 class="sec-ttl">3.3 Proto-Agent · 原型工程师</h3>
+  <div class="agent-card">
+    <div class="hd"><span class="nm">Proto-Agent</span><span class="tag tag-info">/proto-design</span></div>
+    <div class="role">交互原型设计，复用组件模版库，严格引用 UI 规范编号</div>
+    <div class="pipeline">
+      <span class="stg">Architect</span><span class="arr">→</span>
+      <span class="stg">Implementer</span><span class="arr">→</span>
+      <span class="stg">Tester</span>
+    </div>
+    <ul>
+      <li><strong>产出：</strong>原型设计文档 / 独立原型页（proto-*.html）/ 组装页 / 测试报告</li>
+      <li><strong>强制步骤：</strong>扫描组件模版库（reuse/new 标记）+ UI 规范引用映射（缺失则阻断）</li>
+      <li><strong>质量门禁：</strong>Tester 评分 <span class="tag tag-success tag-lg">≥90</span> 通过</li>
+      <li><strong>关键规范：</strong>HTML 流程图用 flowdia 交互组件；禁改 <code class="inline">:root</code> CSS 变量</li>
+    </ul>
+  </div>
+
+  <h3 class="sec-ttl">3.4 Restore-Agent · 复原工程师</h3>
+  <div class="agent-card">
+    <div class="hd"><span class="nm">Restore-Agent</span><span class="tag tag-info">/restore-page</span></div>
+    <div class="role">从线上页面 URL 复原为可交互原型，核心原则：抓取现有代码，禁止重新编码</div>
+    <div class="pipeline">
+      <span class="stg">Planner</span><span class="arr">→</span>
+      <span class="stg">Crawler</span><span class="arr">→</span>
+      <span class="stg">Verifier</span>
+    </div>
+    <ul>
+      <li><strong>产出：</strong>复原计划 / 复原代码（含 CSS/JS/图片资源）/ 验证报告</li>
+      <li><strong>登录处理：</strong>支持 6 场景（无需/密码/验证码/短信/2FA/扫码）</li>
+      <li><strong>质量门禁：</strong>匹配度 <span class="tag tag-success tag-lg">≥90</span> 通过（80-89 有条件通过）</li>
+      <li><strong>匹配算法：</strong>DOM 30% + 样式 30% + 资源 20% + 交互 20%</li>
+    </ul>
+  </div>
+
+  <h3 class="sec-ttl">3.5 KB-Agent · 知识库管家</h3>
+  <div class="agent-card">
+    <div class="hd"><span class="nm">KB-Agent</span><span class="tag tag-info">/manage-kb</span></div>
+    <div class="role">知识库条目的创建、爬虫文档归档、内容审核</div>
+    <div class="pipeline">
+      <span class="stg">KB-Writer</span><span class="arr">→</span>
+      <span class="stg">KB-Crawl-Handler</span><span class="arr">→</span>
+      <span class="stg">KB-Reviewer</span>
+    </div>
+    <ul>
+      <li><strong>分类：</strong>user-research / competitor / data / methodology / requirement / design 等</li>
+      <li><strong>优先级：</strong>P0 / P1 / P2</li>
+      <li><strong>质量门禁：</strong>KB-Reviewer 评分 <span class="tag tag-success tag-lg">≥90</span> 通过</li>
+      <li><strong>模板：</strong>frontmatter 必含 8 字段（title/type/date/source/author/tags/priority/version）</li>
+    </ul>
+  </div>
+
+  <h3 class="sec-ttl">3.6 UI-Standard-Agent · UI 规范管理员</h3>
+  <div class="agent-card">
+    <div class="hd"><span class="nm">UI-Standard-Agent</span><span class="tag tag-info">/manage-ui-standard</span></div>
+    <div class="role">线上实测收录 UI 控件规范，维护全局唯一 UI-xx 编号库</div>
+    <div class="pipeline">
+      <span class="stg">UI-Observer</span><span class="arr">→</span>
+      <span class="stg">UI-Analyst</span><span class="arr">→</span>
+      <span class="stg">UI-Writer</span><span class="arr">→</span>
+      <span class="stg">UI-Reviewer</span>
+    </div>
+    <ul>
+      <li><strong>4 种触发模式：</strong>网址增量 / 截图录入 / 缺失补充 / 维护编辑</li>
+      <li><strong>编号规则：</strong>UI-xx，只追加不改号；废止标 archived 不删号</li>
+      <li><strong>质量门禁：</strong><code class="inline">ui_standard_check.py</code> 5 断言 <span class="tag tag-success tag-lg">全 PASS</span></li>
+      <li><strong>强制：</strong>PRD 与原型引用 UI 编号即可，禁止内联样式值</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 第四章 ==================== -->
+<section id="ch4">
+  <div class="chapter-head">
+    <span class="ch-num">04</span>
+    <h2 class="ch-ttl">任务路由与触发</h2>
+    <span class="ch-sub">10 类任务 · 6 个命令 · 意图兜底</span>
+  </div>
+
+  <h3 class="sec-ttl">4.1 十类任务路由表</h3>
+  <p>总指挥根据用户输入的关键词匹配任务类型，按下表路由到对应 Agent 或直接执行。</p>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>类型</th><th>触发命令</th><th>调度方式</th><th>对应文档</th></tr></thead>
+      <tbody>
+        <tr><td class="pri">prd</td><td><code>/prd-write</code></td><td>调度 Agent</td><td>docs/agents/prd_agent.md</td></tr>
+        <tr><td class="pri">proto</td><td><code>/proto-design</code></td><td>调度 Agent</td><td>docs/agents/proto_agent.md</td></tr>
+        <tr><td class="pri">restore</td><td><code>/restore-page</code></td><td>调度 Agent</td><td>docs/agents/restore_agent.md</td></tr>
+        <tr><td class="pri">kb</td><td><code>/manage-kb</code></td><td>调度 Agent</td><td>docs/agents/kb_agent.md</td></tr>
+        <tr><td class="pri">ui-standard</td><td><code>/manage-ui-standard</code></td><td>调度 Agent</td><td>docs/agents/ui_standard_agent.md</td></tr>
+        <tr><td class="pri">version</td><td><code>/manage-version</code></td><td>直接执行</td><td>docs/pipelines/version-workflow.md</td></tr>
+        <tr><td class="pri">doc</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/doc-pipeline.md</td></tr>
+        <tr><td class="pri">diagram</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/diagram-workflow.md</td></tr>
+        <tr><td class="pri">component</td><td>自然语言</td><td>直接执行</td><td>docs/pipelines/component-workflow.md</td></tr>
+        <tr><td class="pri">multi</td><td>自然语言</td><td>拆解串行</td><td>按上述路由逐个调度</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sec-ttl">4.2 六个 Slash 命令</h3>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>命令</th><th>用途</th><th>示例</th></tr></thead>
+      <tbody>
+        <tr><td><code>/prd-write</code></td><td>编写 PRD 需求文档</td><td><code>/prd-write 库存调拨</code></td></tr>
+        <tr><td><code>/proto-design</code></td><td>交互原型设计</td><td><code>/proto-design 库存调拨</code></td></tr>
+        <tr><td><code>/restore-page</code></td><td>复原线上页面</td><td><code>/restore-page https://example.com</code></td></tr>
+        <tr><td><code>/manage-kb</code></td><td>知识库管理</td><td><code>/manage-kb 添加竞品分析</code></td></tr>
+        <tr><td><code>/manage-ui-standard</code></td><td>UI 规范维护</td><td><code>/manage-ui-standard 收录 https://…</code></td></tr>
+        <tr><td><code>/manage-version</code></td><td>版本管理</td><td><code>/manage-version 创建 库存调拨</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sec-ttl">4.3 意图模糊兜底</h3>
+  <div class="card warn">
+    <span class="lbl">规则 W16</span>
+    <p style="margin:0">当用户输入<strong>未命中</strong>上述任何任务类型关键词时，总指挥<strong>禁止自行猜测路由</strong>，固定动作为：展示上述 10 类候选意图供用户选择。这确保任何模糊输入都有明确的、可操作的下一步。</p>
+  </div>
+</section>
+
+<!-- ==================== 第五章 ==================== -->
+<section id="ch5">
+  <div class="chapter-head">
+    <span class="ch-num">05</span>
+    <h2 class="ch-ttl">操作流程</h2>
+    <span class="ch-sub">启动序列 · 双卡点流程 · 多任务</span>
+  </div>
+
+  <h3 class="sec-ttl">5.1 启动序列</h3>
+  <p>每次启动工作站，总指挥按以下 4 步顺序执行。步骤 0 为环境硬门禁，未通过不得继续。</p>
+
+  <div class="flow-wrap">
+    <svg width="100%" viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg" style="max-width:760px;margin:0 auto;display:block">
+      <defs>
+        <marker id="ar1" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#909399"/></marker>
+      </defs>
+      <!-- step 0 -->
+      <rect x="10" y="35" width="160" height="70" rx="10" fill="#fdf6ec" stroke="#e6a23c" stroke-width="2"/>
+      <text x="90" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#303133" font-family="-apple-system,sans-serif">步骤 0</text>
+      <text x="90" y="84" text-anchor="middle" font-size="12" fill="#606266" font-family="-apple-system,sans-serif">环境自检</text>
+      <text x="90" y="100" text-anchor="middle" font-size="10" fill="#e6a23c" font-family="-apple-system,sans-serif">check_env.py</text>
+      <line x1="170" y1="70" x2="200" y2="70" stroke="#909399" stroke-width="1.5" marker-end="url(#ar1)"/>
+      <!-- step 1 -->
+      <rect x="205" y="35" width="160" height="70" rx="10" fill="#ecf5ff" stroke="#409eff" stroke-width="2"/>
+      <text x="285" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#303133" font-family="-apple-system,sans-serif">步骤 1</text>
+      <text x="285" y="84" text-anchor="middle" font-size="12" fill="#606266" font-family="-apple-system,sans-serif">读取状态</text>
+      <text x="285" y="100" text-anchor="middle" font-size="10" fill="#409eff" font-family="-apple-system,sans-serif">STATE.md</text>
+      <line x1="365" y1="70" x2="395" y2="70" stroke="#909399" stroke-width="1.5" marker-end="url(#ar1)"/>
+      <!-- step 2 -->
+      <rect x="400" y="35" width="160" height="70" rx="10" fill="#ecf5ff" stroke="#409eff" stroke-width="2"/>
+      <text x="480" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#303133" font-family="-apple-system,sans-serif">步骤 2</text>
+      <text x="480" y="84" text-anchor="middle" font-size="12" fill="#606266" font-family="-apple-system,sans-serif">读取配置</text>
+      <text x="480" y="100" text-anchor="middle" font-size="10" fill="#409eff" font-family="-apple-system,sans-serif">project.yaml</text>
+      <line x1="560" y1="70" x2="590" y2="70" stroke="#909399" stroke-width="1.5" marker-end="url(#ar1)"/>
+      <!-- step 3 -->
+      <rect x="595" y="35" width="160" height="70" rx="10" fill="#f0f9eb" stroke="#67c23a" stroke-width="2"/>
+      <text x="675" y="62" text-anchor="middle" font-size="13" font-weight="600" fill="#303133" font-family="-apple-system,sans-serif">步骤 3</text>
+      <text x="675" y="84" text-anchor="middle" font-size="12" fill="#606266" font-family="-apple-system,sans-serif">意图分类</text>
+      <text x="675" y="100" text-anchor="middle" font-size="10" fill="#67c23a" font-family="-apple-system,sans-serif">进入路由</text>
+    </svg>
+    <div class="cap">图 5-1：启动序列四步。步骤 0 为环境硬门禁（橙色），失败则进入首次安装流程；通过后依次读取状态与配置，最终进入意图分类（绿色）。</div>
+  </div>
+
+  <h3 class="sec-ttl">5.2 文件变更双卡点流程</h3>
+  <p>任何涉及文件编辑的任务，<strong>严格按双卡点流程执行，禁止跳步</strong>。两个卡点均需用户明确信号词方可放行。</p>
+
+  <div class="flow-wrap">
+    <svg width="100%" viewBox="0 0 760 560" xmlns="http://www.w3.org/2000/svg" style="max-width:420px;margin:0 auto;display:block">
+      <defs>
+        <marker id="ar2" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#909399"/></marker>
+      </defs>
+      <!-- 需求 -->
+      <rect x="80" y="10" width="180" height="44" rx="8" fill="#fff" stroke="#dcdfe6" stroke-width="1.5"/>
+      <text x="170" y="37" text-anchor="middle" font-size="13" fill="#303133" font-family="-apple-system,sans-serif">用户提出需求</text>
+      <line x1="170" y1="54" x2="170" y2="78" stroke="#909399" stroke-width="1.5" marker-end="url(#ar2)"/>
+      <!-- 探索 -->
+      <rect x="80" y="80" width="180" height="44" rx="8" fill="#fff" stroke="#dcdfe6" stroke-width="1.5"/>
+      <text x="170" y="107" text-anchor="middle" font-size="13" fill="#303133" font-family="-apple-system,sans-serif">探索环境，理解需求</text>
+      <line x1="170" y1="124" x2="170" y2="148" stroke="#909399" stroke-width="1.5" marker-end="url(#ar2)"/>
+      <!-- 卡点① -->
+      <polygon points="170,150 290,200 170,250 50,200" fill="#fef0f0" stroke="#f56c6c" stroke-width="2"/>
+      <text x="170" y="192" text-anchor="middle" font-size="12" font-weight="700" fill="#f56c6c" font-family="-apple-system,sans-serif">卡点①</text>
+      <text x="170" y="210" text-anchor="middle" font-size="11" fill="#606266" font-family="-apple-system,sans-serif">计划批准</text>
+      <line x1="170" y1="250" x2="170" y2="278" stroke="#909399" stroke-width="1.5" marker-end="url(#ar2)"/>
+      <!-- 执行 -->
+      <rect x="80" y="280" width="180" height="44" rx="8" fill="#ecf5ff" stroke="#409eff" stroke-width="1.5"/>
+      <text x="170" y="300" text-anchor="middle" font-size="12" fill="#303133" font-family="-apple-system,sans-serif">git pull → 执行变更</text>
+      <text x="170" y="316" text-anchor="middle" font-size="11" fill="#409eff" font-family="-apple-system,sans-serif">→ git commit</text>
+      <line x1="170" y1="324" x2="170" y2="348" stroke="#909399" stroke-width="1.5" marker-end="url(#ar2)"/>
+      <!-- 卡点② -->
+      <polygon points="170,350 290,400 170,450 50,400" fill="#fef0f0" stroke="#f56c6c" stroke-width="2"/>
+      <text x="170" y="392" text-anchor="middle" font-size="12" font-weight="700" fill="#f56c6c" font-family="-apple-system,sans-serif">卡点②</text>
+      <text x="170" y="410" text-anchor="middle" font-size="11" fill="#606266" font-family="-apple-system,sans-serif">审查通过</text>
+      <line x1="170" y1="450" x2="170" y2="478" stroke="#909399" stroke-width="1.5" marker-end="url(#ar2)"/>
+      <!-- 完成 -->
+      <rect x="80" y="480" width="180" height="44" rx="8" fill="#f0f9eb" stroke="#67c23a" stroke-width="1.5"/>
+      <text x="170" y="500" text-anchor="middle" font-size="12" fill="#303133" font-family="-apple-system,sans-serif">state_manager.py refresh</text>
+      <text x="170" y="516" text-anchor="middle" font-size="11" fill="#67c23a" font-family="-apple-system,sans-serif">任务完成</text>
+    </svg>
+    <div class="cap">图 5-2：文件变更双卡点流程。红色菱形为强制卡点，未获用户明确信号词不得放行。</div>
+  </div>
+
+  <h4 class="sub-ttl">卡点信号词判定</h4>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>卡点</th><th>放行信号词（命中任一即通过）</th><th>不算放行</th></tr></thead>
+      <tbody>
+        <tr><td><strong>卡点①</strong><br><span class="tag tag-default">计划批准</span></td><td>批准 · 可以 · 执行 · 开始 · OK · 确认 · 没问题 · 按这个来 · 就这么办</td><td>仅补充需求 · 纠正 · 疑问 · 只读不回 · 语气词（嗯/哦）</td></tr>
+        <tr><td><strong>卡点②</strong><br><span class="tag tag-default">审查通过</span></td><td>通过 · 审查通过 · 没问题 · OK · 可以 · 确认</td><td>提出修改意见 · 指出遗漏 · 只读不回</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card danger">
+    <span class="lbl">红线</span>
+    <p style="margin:0">卡点①批准前<strong>禁止任何写操作</strong>；卡点②通过前<strong>禁止 state refresh</strong>。审查不通过时，基于已提交内容继续修改，走新的「计划→执行→commit→审查」循环。</p>
+  </div>
+
+  <h3 class="sec-ttl">5.3 多任务组合</h3>
+  <div class="card">
+    <ul>
+      <li><strong>串行（默认）：</strong>子任务按声明顺序逐个执行</li>
+      <li><strong>波次并行：</strong>任务书声明 <code class="inline">wave</code> 字段后，同 wave 步骤可并行调度</li>
+      <li><strong>典型并行场景：</strong><code class="inline">restore + kb</code>（无依赖）、<code class="inline">proto + prd</code>（proto 有 restored 页面时）</li>
+      <li><strong>失败传播：</strong>前一子任务 BLOCKED，后续全部跳过</li>
+      <li><strong>典型 multi 顺序：</strong><code class="inline">restore → proto → prd</code></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ==================== 第六章 ==================== -->
+<section id="ch6">
+  <div class="chapter-head">
+    <span class="ch-num">06</span>
+    <h2 class="ch-ttl">命令速查</h2>
+    <span class="ch-sub">Slash 命令 · Python 脚本</span>
+  </div>
+
+  <h3 class="sec-ttl">6.1 Python 脚本命令速查</h3>
+  <p>所有脚本位于 <code class="inline">scripts/</code> 目录，通过 <code class="inline">python3 scripts/&lt;脚本&gt;.py</code> 调用。</p>
+
+  <h4 class="sub-ttl">环境与状态</h4>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>脚本</th><th>命令</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>check_env.py</code></td><td><code>python3 scripts/check_env.py</code></td><td>环境自检（7 项，唯一验收命令）</td></tr>
+        <tr><td><code>init_project.py</code></td><td><code>python3 scripts/init_project.py [名称]</code></td><td>初始化项目（重建缺失目录）</td></tr>
+        <tr><td><code>state_manager.py</code></td><td><code>init | read | refresh | update-version &lt;v&gt; | record-decision &lt;text&gt;</code></td><td>STATE.md 跨会话状态管理</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub-ttl">版本管理</h4>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>脚本</th><th>命令</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>create_version.py</code></td><td><code>python3 scripts/create_version.py 库存调拨_v1.0.0</code></td><td>创建版本（支持模糊名自动加版本号）</td></tr>
+        <tr><td><code>version_manager.py</code></td><td><code>current | next | list | status | switch | diff &lt;v1&gt; &lt;v2&gt; | release | archive | changelog | bump</code></td><td>版本全生命周期管理</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub-ttl">Git 提交</h4>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>脚本</th><th>命令</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>git_helper.py</code></td><td><code>commit-task-start &lt;task_id&gt; &lt;type&gt; &lt;version&gt;</code></td><td>任务开始提交</td></tr>
+        <tr><td></td><td><code>commit-stage &lt;task_id&gt; &lt;stage&gt; &lt;type&gt; &lt;version&gt; [files]</code></td><td>阶段提交（精确回滚/bisect）</td></tr>
+        <tr><td></td><td><code>commit-task-complete &lt;task_id&gt; &lt;type&gt; &lt;version&gt;</code></td><td>任务完成提交</td></tr>
+        <tr><td></td><td><code>release &lt;version&gt; | log [count]</code></td><td>发布版本 / 查看日志</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4 class="sub-ttl">文档与校验</h4>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>脚本</th><th>命令</th><th>用途</th></tr></thead>
+      <tbody>
+        <tr><td><code>operation_doc_manager.py</code></td><td><code>init | create | generate-docx | review | validate | list --feature &lt;名&gt;</code></td><td>操作文档管理</td></tr>
+        <tr><td><code>component_manager.py</code></td><td><code>list | add | create | remove | validate | info | sync</code></td><td>组件模版库管理</td></tr>
+        <tr><td><code>prd_html_check.py</code></td><td><code>python3 scripts/prd_html_check.py &lt;prd.html&gt;</code></td><td>PRD HTML 6 类断言校验</td></tr>
+        <tr><td><code>ui_standard_check.py</code></td><td><code>python3 scripts/ui_standard_check.py</code></td><td>UI 规范 5 断言校验（提交前强制）</td></tr>
+        <tr><td><code>ui_standard_render.py</code></td><td><code>python3 scripts/ui_standard_render.py</code></td><td>UI 规范 MD → HTML 查看器渲染</td></tr>
+        <tr><td><code>project_linter.py</code></td><td><code>check | fix | report</code></td><td>项目结构 Linter</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ==================== 第七章 ==================== -->
+<section id="ch7">
+  <div class="chapter-head">
+    <span class="ch-num">07</span>
+    <h2 class="ch-ttl">版本管理</h2>
+    <span class="ch-sub">模型 · 操作 · 两处同步</span>
+  </div>
+
+  <h3 class="sec-ttl">7.1 版本模型</h3>
+  <div class="card tip">
+    <p style="margin:0"><strong>一个需求 = 一个版本。</strong>格式为 <code class="inline">{名称}_v{主版本}.{次版本}.{补丁}</code>，例如 <code class="inline">库存调拨_v1.0.0</code>。名称只允许中英文、数字、下划线、连字符。同名需求下，次版本号自动 +1。</p>
+  </div>
+
+  <h3 class="sec-ttl">7.2 版本操作</h3>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>操作</th><th>命令/方式</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td><strong>创建</strong></td><td><code>/manage-version 创建 库存调拨</code></td><td>自动计算版本号，创建目录骨架</td></tr>
+        <tr><td><strong>切换</strong></td><td><code>/manage-version 切换 库存调拨_v1.0</code></td><td>更新 current_version</td></tr>
+        <tr><td><strong>状态</strong></td><td><code>/manage-version 状态</code></td><td>查看版本进度、PRD/原型文件、任务记录</td></tr>
+        <tr><td><strong>对比</strong></td><td><code>version_manager.py diff v1 v2</code></td><td>对比两个版本的文件差异</td></tr>
+        <tr><td><strong>列表</strong></td><td><code>version_manager.py list</code></td><td>列出所有版本</td></tr>
+        <tr><td><strong>归档</strong></td><td><code>version_manager.py archive</code></td><td>归档版本（需两处同步）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card warn">
+    <span class="lbl">规则 W25</span>
+    <p style="margin:0"><strong>两处同步：</strong>创建与归档版本时，必须同步两处——<code class="inline">config/project.yaml</code> 的 version.versions 列表 与 <code class="inline">STATE.md</code> 版本表。可通过 <code class="inline">python3 scripts/state_manager.py refresh</code> 自动同步。</p>
+  </div>
+
+  <div class="card warn">
+    <span class="lbl">注意</span>
+    <p style="margin:0">创建新版本但<strong>未提供名称</strong>时，总指挥<strong>必须先询问用户</strong>，禁止自行编造版本名。用户未指定版本时，用 <code class="inline">version_manager.py list</code> 展示供选择。</p>
+  </div>
+</section>
+
+<!-- ==================== 第八章 ==================== -->
+<section id="ch8">
+  <div class="chapter-head">
+    <span class="ch-num">08</span>
+    <h2 class="ch-ttl">质量与检验</h2>
+    <span class="ch-sub">通过线 · 检验清单 · 返工上限</span>
+  </div>
+
+  <h3 class="sec-ttl">8.1 评分通过线</h3>
+  <p>每条流水线设有质量门禁，未达通过线不得交付。通过线权威定义见 <code class="inline">docs/verification/quality-gates.md</code>。</p>
+  <div class="card tight">
+    <table class="tbl">
+      <thead><tr><th>流水线</th><th>评审角色</th><th>通过线</th><th>备注</th></tr></thead>
+      <tbody>
+        <tr><td>PRD 需求文档</td><td>Reviewer</td><td><span class="tag tag-success tag-lg">≥ 80</span></td><td>60-79 返 Writer，&lt;60 返 Researcher</td></tr>
+        <tr><td>交互原型</td><td>Tester</td><td><span class="tag tag-success tag-lg">≥ 90</span></td><td>70-89 返 Implementer，&lt;70 返 Architect</td></tr>
+        <tr><td>原型复原</td><td>Verifier</td><td><span class="tag tag-success tag-lg">≥ 90</span></td><td><span class="tag tag-warning">80-89 有条件通过</span>，需用户确认</td></tr>
+        <tr><td>操作文档</td><td>Reviewer</td><td><span class="tag tag-success tag-lg">≥ 85</span></td><td>占位符残留 ≤5 处</td></tr>
+        <tr><td>知识库</td><td>KB-Reviewer</td><td><span class="tag tag-success tag-lg">≥ 90</span></td><td>frontmatter 8 字段齐全</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 class="sec-ttl">8.2 检验清单要点</h3>
+  <div class="card">
+    <p>每次任务必检通用项 7 条 + 各任务类型专项检验。每项标注<strong>【机器可验】</strong>（附检查命令）或<strong>【人工判定】</strong>（附判定要点），机器可验占比目标 ≥60%。</p>
+    <h4>通用检验 7 条</h4>
+    <ul>
+      <li>代码已同步（<code class="inline">git rev-parse HEAD</code> = <code class="inline">origin/main</code>）</li>
+      <li>任务书存在且字段完整</li>
+      <li>Agent 输出文件存在</li>
+      <li>阻塞已解决</li>
+      <li>最终报告含交付物清单</li>
+      <li>用户可定位产出</li>
+      <li>版本上下文正确</li>
+    </ul>
+  </div>
+
+  <h3 class="sec-ttl">8.3 返工上限</h3>
+  <div class="card danger">
+    <span class="lbl">规则 W20</span>
+    <p style="margin:0">任何自动返工循环统一<strong>最多 2 次</strong>（首次执行 + 2 次返工 = 3 次尝试）。仍未通过则<strong>暂停流水线，向用户报告</strong>，禁止无限重试。PRD HTML 生成后必过 <code class="inline">prd_html_check.py</code> 6 类断言（W27），任一 FAIL 不得 commit。</p>
+  </div>
+</section>
+
+<!-- ==================== 第九章 ==================== -->
+<section id="ch9">
+  <div class="chapter-head">
+    <span class="ch-num">09</span>
+    <h2 class="ch-ttl">常见问题</h2>
+    <span class="ch-sub">FAQ</span>
+  </div>
+
+  <details class="faq-item" open>
+    <summary>首次使用，环境自检失败怎么办？</summary>
+    <div class="ans">环境自检（<code class="inline">check_env.py</code>）任一项 FAIL 即判定首次使用。总指挥会展示安装清单，<strong>等待你同意后</strong>按 INSTALL.md §3 执行安装（pip 依赖 / hooks 赋权 / settings.json 路径替换 / 目录修复），完成后重跑自检验收。<strong>验收未通过前禁止进入工作流程</strong>。注意 Python 需用户自行安装（≥3.9），Agent 不可代装。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>我不知道该用什么命令，怎么说才对？</summary>
+    <div class="ans">直接用自然语言描述需求即可，例如"写一份库存调拨的 PRD""复原这个页面"。总指挥会自动匹配任务类型。<strong>如果输入未命中任何任务类型</strong>，会展示 10 类候选意图供你选择（规则 W16），不会自行猜测路由。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>系统一直等着我确认计划，我该说什么？</summary>
+    <div class="ans">这是<strong>卡点①（计划批准）</strong>。放行信号词：批准 / 可以 / 执行 / 开始 / OK / 确认 / 没问题 / 按这个来 / 就这么办。如果你只是补充需求、纠正或提出疑问，<strong>不算批准</strong>，系统会修订计划后继续等待。详见规则 W13。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>变更做完后审查怎么算通过？</summary>
+    <div class="ans">这是<strong>卡点②（审查通过）</strong>。通过信号词：通过 / 审查通过 / 没问题 / OK / 可以 / 确认。如果你提出修改意见或指出遗漏，<strong>不算通过</strong>，系统会基于已提交内容继续修改。通过后才执行 <code class="inline">state_manager.py refresh</code>。详见规则 W15。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>没指定版本会怎样？</summary>
+    <div class="ans">若只说需求名称（如"库存调拨"），系统匹配该名称的最新版本；若完全未指定，会调用 <code class="inline">version_manager.py list</code> 展示版本列表供你选择；若要创建新版本但未提供名称，<strong>系统必须先询问你</strong>，禁止自行编造版本名。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>原型/PRD 评审没过怎么办？</summary>
+    <div class="ans">系统会自动返工，<strong>最多重试 2 次</strong>（首次 + 2 次返工 = 3 次尝试，规则 W20）。仍未通过则暂停流水线并向你报告。各流水线通过线：PRD ≥80、原型 ≥90、复原 ≥90（80-89 有条件通过需你确认）、操作文档 ≥85、知识库 ≥90。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>HTML 里的流程图为什么是交互式的？</summary>
+    <div class="ans">项目规则（<code class="inline">flow-diagram-standard.md</code> S01）要求所有 HTML 产物中的流程图<strong>禁止静态 PNG</strong>，必须使用 flowdia 交互组件（Mermaid 为 Markdown 权威源）。悬停节点可高亮上下游链路。本说明书的启动序列与双卡点流程图为简洁线性示意，采用内联 SVG 绘制以保持零依赖。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>项目里那么多规则编号（W/D/F/UI…）是什么？</summary>
+    <div class="ans">项目采用<strong>编号化规则体系</strong>确保执行零猜想。主要前缀：<strong>W</strong>（SOP 编写规范，W01-W32）、<strong>F</strong>（PRD 格式，F01-F11）、<strong>D</strong>（PRD 图绘制，D01-D08）、<strong>S</strong>（流程图标准，S01-S09）、<strong>OD</strong>（操作文档，OD01-OD14）、<strong>UI</strong>（UI 规范，UI-xx）、<strong>H</strong>（HTML 渲染，H01-H07）。完整定义见 <code class="inline">docs/rules/sop-writing-standard.md</code> §2.5 编号前缀注册总表。</div>
+  </details>
+
+  <details class="faq-item">
+    <summary>产出文件存在哪里？</summary>
+    <div class="ans">版本产物存于 <code class="inline">versions/{版本号}/</code>（含 prd/、prototype/、agent_comm/ 等子目录）；操作文档独立存于项目根 <code class="inline">operation_docs/</code>；知识库存于 <code class="inline">docs/knowledge-base/</code>；UI 规范存于 <code class="inline">docs/rules/ui-standard/</code>。跨会话状态记录在根目录 <code class="inline">STATE.md</code>。</div>
+  </details>
+
+  <!-- 页脚 -->
+  <div class="foot">
+    PM-Workstation · 操作使用说明书 · 生成于 2026-08-11 · 当前版本 v0.1.0<br>
+    配套文档：<a href="README.md">README.md</a> · <a href="INSTALL.md">INSTALL.md</a> · <a href="AGENTS.md">AGENTS.md</a> · <a href="STATE.md">STATE.md</a> · 许可证 MIT
+  </div>
+</section>
+
+</main>
+
+<!-- 回到顶部 -->
+<button class="back-top" id="backTop" aria-label="回到顶部">↑</button>
+
+<script>
+(function(){
+  // ===== scrollspy 侧栏高亮 =====
+  var links = document.querySelectorAll('.sidebar a[href^="#"]');
+  var sections = [];
+  links.forEach(function(l){
+    var id = l.getAttribute('href').slice(1);
+    var sec = document.getElementById(id);
+    if(sec) sections.push({link:l, sec:sec});
+  });
+
+  function spy(){
+    var pos = window.scrollY + 100;
+    var cur = sections[0];
+    sections.forEach(function(s){ if(s.sec.offsetTop <= pos) cur = s; });
+    links.forEach(function(l){ l.classList.remove('active'); });
+    if(cur) cur.link.classList.add('active');
+  }
+
+  // ===== 平滑滚动（修正顶栏偏移）=====
+  links.forEach(function(l){
+    l.addEventListener('click', function(e){
+      e.preventDefault();
+      var id = this.getAttribute('href').slice(1);
+      var sec = document.getElementById(id);
+      if(sec){
+        var top = sec.offsetTop - 72;
+        window.scrollTo({top:top, behavior:'smooth'});
+      }
+      // 移动端点击后收起侧栏
+      if(window.innerWidth <= 768){
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('show');
+      }
+    });
+  });
+
+  // ===== 回到顶部 =====
+  var bt = document.getElementById('backTop');
+  bt.addEventListener('click', function(){ window.scrollTo({top:0, behavior:'smooth'}); });
+
+  window.addEventListener('scroll', function(){
+    spy();
+    if(window.scrollY > 400) bt.classList.add('show'); else bt.classList.remove('show');
+  });
+
+  // ===== 移动端抽屉 =====
+  var menuBtn = document.getElementById('menuBtn');
+  var sidebar = document.getElementById('sidebar');
+  var overlay = document.getElementById('overlay');
+  menuBtn.addEventListener('click', function(){
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('show');
+  });
+  overlay.addEventListener('click', function(){
+    sidebar.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+
+  // 初始高亮第一章
+  spy();
+})();
+</script>
+</body>
+</html>
