@@ -191,6 +191,24 @@ pre.code .cmd{color:#61afef}
 .faq-item[open] summary::before{content:"A";background:var(--bg-state-c);color:var(--color-success)}
 .faq-item .ans{padding:0 18px 14px 50px;font-size:var(--font-size-sm);color:var(--color-text-regular);line-height:var(--line-height-base)}
 
+/* ===== 对话示例组件（参考 ZCode 对话风格）===== */
+.dialog{background:var(--color-bg-hover);border-radius:var(--radius-md);padding:var(--spacing-md);margin-top:var(--spacing-md);border:1px solid var(--color-border-light)}
+.dialog .dlg-cap{font-size:var(--font-size-xs);color:var(--color-text-secondary);font-weight:var(--font-weight-medium);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.dialog .dlg-cap::before{content:"💬";font-size:13px}
+.dialog .msg{display:flex;gap:10px;margin-bottom:var(--spacing-sm)}
+.dialog .msg:last-child{margin-bottom:0}
+.dialog .msg .av{width:30px;height:30px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;line-height:1}
+.dialog .msg.user .av{background:var(--color-bg-white);color:var(--color-text-secondary);border:1px solid var(--color-border)}
+.dialog .msg.agent .av{background:var(--color-primary);color:#fff;font-weight:var(--font-weight-bold)}
+.dialog .msg .bubble{flex:1;min-width:0}
+.dialog .msg .who{font-size:var(--font-size-xs);color:var(--color-text-secondary);font-weight:var(--font-weight-medium);margin-bottom:3px}
+.dialog .msg .body{font-size:var(--font-size-sm);line-height:var(--line-height-base);color:var(--color-text-primary);background:var(--color-bg-white);padding:9px 13px;border-radius:var(--radius-md);border:1px solid var(--color-border-light)}
+.dialog .msg.agent .body{border-left:3px solid var(--color-primary)}
+.dialog .msg .body .stage{display:inline-block;font-size:var(--font-size-xs);background:var(--bg-state-b);color:var(--color-primary);padding:1px 7px;border-radius:var(--radius-sm);margin:1px 2px;font-weight:var(--font-weight-medium);white-space:nowrap}
+.dialog .msg .body .ok{color:var(--color-success);font-weight:var(--font-weight-semibold)}
+.dialog .msg .body .ckpt{display:inline-block;font-size:var(--font-size-xs);background:#fef0f0;color:var(--color-danger);padding:1px 7px;border-radius:var(--radius-sm);font-weight:var(--font-weight-medium)}
+.dialog .msg .body code{font-family:var(--font-family-mono);font-size:12px;background:var(--bg-state-d);color:var(--color-state-d);padding:1px 5px;border-radius:var(--radius-sm)}
+
 /* ===== 流程图 SVG 容器 ===== */
 .flow-wrap{background:var(--color-bg-white);border-radius:var(--radius-md);padding:var(--spacing-lg);box-shadow:var(--shadow-sm);margin:var(--spacing-md) 0;overflow-x:auto}
 .flow-wrap .cap{font-size:var(--font-size-xs);color:var(--color-text-secondary);margin-top:10px;font-style:italic}
@@ -374,6 +392,15 @@ pre.code .cmd{color:#61afef}
     <div class="card tip tight" style="margin-top:12px">
       <p style="margin:0"><strong>注：</strong>版本操作（创建/切换/对比/归档）与组件模版管理由总指挥<strong>直接执行</strong>，不调度 Agent；业务任务（PRD/原型/复原/KB/UI 规范）才调度对应 Agent。</p>
     </div>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · multi 任务路由</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">帮我复原这个页面 https://order.example.com/list ，然后写一份它的改造 PRD</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Orchestrator</div><div class="body">已解析为 <strong>multi 任务</strong>，分解为两步串行调度：<br>① <span class="stage">restore</span> 复原页面 → ② <span class="stage">prd</span> 基于 restored 页面写 PRD<br><span class="ckpt">卡点①</span> 请确认计划是否执行。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">可以执行</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Orchestrator</div><div class="body">[调度中] ① Restore-Agent：Planner → Crawler → Verifier，匹配度 <span class="ok">93% ✓</span><br>[调度中] ② PRD-Agent：Researcher → Visualizer → Writer → Feasibility → Reviewer，评分 <span class="ok">82 ✓</span></div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Orchestrator</div><div class="body">两步均已完成。交付：<code>prototype/restored/order_list/</code> + <code>库存调拨-prd.md</code><br><span class="ckpt">卡点②</span> 请审查变更摘要。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 
   <h3 class="sec-ttl">3.2 PRD-Agent · 需求工程师</h3>
@@ -393,6 +420,14 @@ pre.code .cmd{color:#61afef}
       <li><strong>质量门禁：</strong>Reviewer 评分 <span class="tag tag-success tag-lg">≥80</span> 通过，返工最多 2 次</li>
       <li><strong>关键规范：</strong>图表用 Mermaid 内联（禁 PNG）；遵循 F01-F11 格式规范</li>
     </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · PRD 编写</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">写一份库存调拨的 PRD</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-PRD-Agent</div><div class="body">已生成执行计划：<span class="stage">Researcher</span> → <span class="stage">Visualizer</span> → <span class="stage">Writer</span> → <span class="stage">Feasibility</span> → <span class="stage">Reviewer</span><br><span class="ckpt">卡点①</span> 请确认。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">批准</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-PRD-Agent</div><div class="body">[执行] 调研摘要完成 → 图先行（2 组标准图）→ 撰写 4 章 → 可行性验证通过 → <span class="ok">Reviewer 评分 82 ✓</span><br>产出：<code>库存调拨-prd.md</code> + <code>库存调拨-prd.html</code></div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 
   <h3 class="sec-ttl">3.3 Proto-Agent · 原型工程师</h3>
@@ -410,6 +445,14 @@ pre.code .cmd{color:#61afef}
       <li><strong>质量门禁：</strong>Tester 评分 <span class="tag tag-success tag-lg">≥90</span> 通过</li>
       <li><strong>关键规范：</strong>HTML 流程图用 flowdia 交互组件；禁改 <code class="inline">:root</code> CSS 变量</li>
     </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · 原型设计</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">设计库存调拨的交互原型</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Proto-Agent</div><div class="body">已生成计划：<span class="stage">Architect</span> → <span class="stage">Implementer</span> → <span class="stage">Tester</span>（含 UI 规范引用映射，缺失则阻断）<br><span class="ckpt">卡点①</span> 请确认。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">可以执行</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Proto-Agent</div><div class="body">[执行] 设计文档 + 组件来源映射（reuse 优先）→ 实现独立原型页 → <span class="ok">Tester 评分 92 ✓</span><br>产出：<code>proto-调拨单.html</code>、<code>proto-审核.html</code> + 组装页</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 
   <h3 class="sec-ttl">3.4 Restore-Agent · 复原工程师</h3>
@@ -427,6 +470,14 @@ pre.code .cmd{color:#61afef}
       <li><strong>质量门禁：</strong>匹配度 <span class="tag tag-success tag-lg">≥90</span> 通过（80-89 有条件通过）</li>
       <li><strong>匹配算法：</strong>DOM 30% + 样式 30% + 资源 20% + 交互 20%</li>
     </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · 页面复原</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">复原这个页面 https://order.example.com/list</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Restore-Agent</div><div class="body">已生成计划：<span class="stage">Planner</span> → <span class="stage">Crawler</span> → <span class="stage">Verifier</span>（核心原则：抓取现有代码，不重新编码）<br><span class="ckpt">卡点①</span> 请确认。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">批准</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-Restore-Agent</div><div class="body">[执行] 复原计划（检查点 12 项）→ 爬取 DOM/CSS/JS/图片 → 清洗去噪 → <span class="ok">匹配度 93% ✓</span><br>产出：<code>prototype/restored/order_list/</code></div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 
   <h3 class="sec-ttl">3.5 KB-Agent · 知识库管家</h3>
@@ -444,6 +495,13 @@ pre.code .cmd{color:#61afef}
       <li><strong>质量门禁：</strong>KB-Reviewer 评分 <span class="tag tag-success tag-lg">≥90</span> 通过</li>
       <li><strong>模板：</strong>frontmatter 必含 8 字段（title/type/date/source/author/tags/priority/version）</li>
     </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · 知识库录入</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">把这份竞品分析加入知识库：[粘贴内容]</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-KB-Agent</div><div class="body">已识别类型 <span class="stage">competitor</span>，优先级 <span class="stage">P1</span>。<br>流程：KB-Writer → KB-Reviewer</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-KB-Agent</div><div class="body">[执行] frontmatter 8 字段补全 → 格式化 → <span class="ok">KB-Reviewer 评分 92 ✓</span><br>归档：<code>docs/knowledge-base/competitor/竞品分析_2026-08-11.md</code>，索引已更新。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 
   <h3 class="sec-ttl">3.6 UI-Standard-Agent · UI 规范管理员</h3>
@@ -462,6 +520,14 @@ pre.code .cmd{color:#61afef}
       <li><strong>质量门禁：</strong><code class="inline">ui_standard_check.py</code> 5 断言 <span class="tag tag-success tag-lg">全 PASS</span></li>
       <li><strong>强制：</strong>PRD 与原型引用 UI 编号即可，禁止内联样式值</li>
     </ul>
+    <div class="dialog">
+      <div class="dlg-cap">操作对话示例 · UI 规范收录</div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">收录这个页面的控件规范 https://admin.example.com/dashboard</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-UI-Standard-Agent</div><div class="body">已生成计划：<span class="stage">Observer</span> → <span class="stage">Analyst</span> → <span class="stage">Writer</span> → <span class="stage">Reviewer</span>（模式 A 网址增量）<br>登录态确认：<span class="ok">无需登录 ✓</span><br><span class="ckpt">卡点①</span> 请确认。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">可以执行</div></div></div>
+      <div class="msg agent"><div class="av">🤖</div><div class="bubble"><div class="who">PM-UI-Standard-Agent</div><div class="body">[执行] 页面框架实测 + 逐控件实测（hover/focus/点击）→ 比对现有库 → 分配 <code>UI-28</code>、<code>UI-29</code> → <span class="ok">check.py 5/5 PASS ✓</span><br>已渲染 index.html 查看器。</div></div></div>
+      <div class="msg user"><div class="av">👤</div><div class="bubble"><div class="who">用户</div><div class="body">通过</div></div></div>
+    </div>
   </div>
 </section>
 
