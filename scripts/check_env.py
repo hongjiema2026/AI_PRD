@@ -24,6 +24,8 @@ SETTINGS_FILE = PROJECT_ROOT / ".zcode" / "settings.json"
 CONFIG_FILE = PROJECT_ROOT / "config" / "project.yaml"
 
 # requirements.txt 的运行依赖（import 名, pip 名）
+# 注：playwright 虽在 requirements.txt 中，但除包 import 外还需校验 chromium
+# 二进制，由第 8 项 check_playwright 单独深检，不在本列表。
 REQUIRED_DEPS = [
     ("requests", "requests"),
     ("bs4", "beautifulsoup4"),
@@ -151,6 +153,31 @@ def check_settings_paths():
         f"将 .zcode/settings.json 中 Write/Edit 权限路径替换为: {expected}（见 INSTALL.md §3 步骤 4）"
 
 
+def check_playwright():
+    """Playwright 必装校验：包可 import + chromium 二进制存在。
+
+    探测逻辑与 scripts/restore_pipeline/playwright_fetcher.py 的
+    check_health() 保持一致。
+    """
+    try:
+        if importlib.util.find_spec("playwright") is None:
+            return FAIL, "playwright 包未安装", \
+                "pip install playwright && playwright install chromium"
+    except ImportError:
+        return FAIL, "playwright 包未安装", \
+            "pip install playwright && playwright install chromium"
+    try:
+        from playwright.sync_api import sync_playwright
+        with sync_playwright() as p:
+            exe = p.chromium.executable_path
+        if exe and Path(exe).exists():
+            return PASS, "playwright 包与 chromium 二进制就绪", ""
+        return FAIL, f"chromium 二进制不存在: {exe}", \
+            "playwright install chromium"
+    except Exception as e:
+        return FAIL, f"chromium 探测失败: {e}", "playwright install chromium"
+
+
 CHECKS = [
     ("Python 版本", check_python_version),
     ("Python 依赖", check_deps),
@@ -159,6 +186,7 @@ CHECKS = [
     ("项目配置", check_config),
     ("hooks 可执行权限", check_hooks),
     ("settings.json 路径", check_settings_paths),
+    ("Playwright 浏览器", check_playwright),
 ]
 
 

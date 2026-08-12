@@ -17,12 +17,13 @@
 - **Python**: 3.9 或更高版本（`python3 --version` 自检）
 - **操作系统**: macOS / Linux / Windows (WSL)
 - **工作目录**: 所有脚本需在项目根目录执行
+- **浏览器自动化**: Playwright + Chromium 必装（页面复原/原型预览依赖，见下方安装步骤）
 
 ### 一键自动安装（推荐）
 
 复制下面这句话发给当前 AI 工具，它会自动完成全部安装并验收：
 
-> 请按 INSTALL.md 自动安装本机环境并验收至 7 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。
+> 请按 INSTALL.md 自动安装本机环境并验收至 8 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。
 
 ### 手动安装步骤
 
@@ -35,7 +36,8 @@ cd prd_v2
 
 # 2. 创建虚拟环境并安装依赖
 python3 -m venv .venv && source .venv/bin/activate   # macOS/Linux（Windows: .venv\Scripts\activate）
-pip install -r requirements.txt                       # 运行依赖
+pip install -r requirements.txt                       # 运行依赖（含 playwright）
+playwright install chromium                           # Playwright 浏览器二进制（必装）
 pip install -r requirements-dev.txt                   # 开发依赖（可选，跑测试/lint 时需要）
 
 # 3. hooks 赋可执行权限（仅 macOS/Linux；Windows 跳过）
@@ -44,7 +46,7 @@ chmod +x .zcode/hooks/session-start .zcode/hooks/filter-bash-output .zcode/hooks
 # 4. 修正 settings.json 权限路径（新机器必须做，否则文件写入权限不生效）
 #    将 .zcode/settings.json 中 Write/Edit 权限的绝对路径替换为当前项目根
 
-# 5. 验收：7 项全 PASS 且退出码 0 即安装完成
+# 5. 验收：8 项全 PASS 且退出码 0 即安装完成
 python3 scripts/check_env.py
 ```
 

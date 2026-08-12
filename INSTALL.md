@@ -1,7 +1,7 @@
 ---
 title: 项目安装与环境验收指南（INSTALL）
-version: v1.1
-date: 2026-08-11
+version: v1.2
+date: 2026-08-12
 status: active
 ---
 
@@ -9,7 +9,7 @@ status: active
 
 | 属性 | 值 |
 |------|-----|
-| 版本 | v1.1 |
+| 版本 | v1.2 |
 | 适用范围 | 接收本项目分享包的 Agent / 新机器首次安装；人类用户亦可参考 |
 | 创建日期 | 2026-08-10 |
 | 状态 | active |
@@ -29,7 +29,7 @@ status: active
 
 ## §2 安装清单
 
-> 首次使用识别命中时，Agent 须将本表展示给用户并等待同意；检查项与 `check_env.py` 七组一一对应。
+> 首次使用识别命中时，Agent 须将本表展示给用户并等待同意；检查项与 `check_env.py` 八组一一对应。
 
 | 编号 | 检查项 | 通过标准 | 缺失时的安装动作 |
 |------|--------|----------|------------------|
@@ -40,12 +40,13 @@ status: active
 | 5 | 项目配置 | project.yaml 可解析且 version.current 非空 | 修复 YAML 语法或补齐 version.current |
 | 6 | hooks 可执行权限 | .zcode/hooks 三脚本有执行位（Windows 跳过） | `chmod +x .zcode/hooks/session-start .zcode/hooks/filter-bash-output .zcode/hooks/check-read-size` |
 | 7 | settings.json 路径 | .zcode/settings.json 中 Write/Edit 权限路径 = 当前项目根 | 替换为当前项目根绝对路径（§3 步骤 4） |
+| 8 | Playwright 浏览器 | playwright 包可 import 且 chromium 二进制存在 | `pip install playwright && playwright install chromium`（§3 步骤 2） |
 
 ## §3 安装步骤
 
 > 💡 **一键自动安装**（复制以下一句话发给 Agent）：
 >
-> 请按 INSTALL.md 自动安装本机环境并验收至 7 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。
+> 请按 INSTALL.md 自动安装本机环境并验收至 8 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。
 
 > 所有命令均在**项目根目录**执行。Agent 执行前须已获得用户对 §2 清单的同意。
 
@@ -60,7 +61,8 @@ cd prd_v2                     # 进入项目根目录
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate   # macOS/Linux（可选但推荐）
-pip install -r requirements.txt                      # 运行依赖（4 个）
+pip install -r requirements.txt                      # 运行依赖（5 个，含 playwright）
+playwright install chromium                          # Playwright 浏览器二进制（必装，页面复原/原型预览依赖）
 pip install -r requirements-dev.txt                  # 开发依赖（可选，仅跑测试/lint 时需要）
 ```
 
@@ -100,7 +102,7 @@ python3 scripts/state_manager.py init              # 仅 STATE.md 缺失时
 ### 步骤 6 · 验收
 
 ```bash
-python3 scripts/check_env.py    # 7 PASS / 0 FAIL，退出码 0
+python3 scripts/check_env.py    # 8 PASS / 0 FAIL，退出码 0
 ```
 
 ## §4 Agent 识别映射
@@ -122,7 +124,7 @@ python3 scripts/check_env.py    # 7 PASS / 0 FAIL，退出码 0
 
 | 编号 | 验收项 | 机器可验命令 | 通过标准 |
 |------|--------|--------------|----------|
-| 1 | 整体环境 | `python3 scripts/check_env.py; echo $?` | 7 PASS / 0 FAIL 且退出码 0【机器可验】 |
+| 1 | 整体环境 | `python3 scripts/check_env.py; echo $?` | 8 PASS / 0 FAIL 且退出码 0【机器可验】 |
 | 2 | 版本上下文 | `python3 scripts/version_manager.py current` | 输出版本名（与 project.yaml version.current 一致）【机器可验】 |
 | 3 | 结构完整 | `python3 scripts/project_linter.py run` | 无 error 级发现【机器可验】 |
 | 4 | 测试套件（可选） | `pip install -r requirements-dev.txt && make test` | pytest 全绿【机器可验】 |
@@ -137,11 +139,12 @@ python3 scripts/check_env.py    # 7 PASS / 0 FAIL，退出码 0
 4. **Windows**：hooks 检查自动 SKIP（无需 chmod）；建议 WSL 环境获得完整体验
 5. **lxml 安装失败**：先 `pip install --upgrade pip` 再重试（ wheels 覆盖主流平台）
 6. **settings.json 替换后仍 FAIL**：确认 Write 与 Edit 两条权限均已替换，且路径无尾部空格
-7. **可选能力**：页面复原/原型预览的浏览器自动化依赖 Playwright（脚本侧：`pip install playwright && playwright install chromium`；主会话侧：Playwright MCP），属工具侧配置，不在本安装范围内，缺失不阻断验收
+7. **Playwright 为必装项**（§2 编号 8）：页面复原/原型预览的浏览器自动化依赖 Playwright，缺失会使验收 FAIL。脚本侧修复：`pip install playwright && playwright install chromium`；主会话侧 Playwright MCP 属工具侧配置，不在验收范围内
 
 ## 附录：变更记录
 
 | 日期 | 版本 | 变更内容 | 同步载体 |
 |------|------|----------|----------|
+| 2026-08-12 | v1.2 | ①Playwright 由可选改为必装：§2 清单新增第 8 项（包可 import + chromium 二进制存在）、§3 步骤 2 追加 `playwright install chromium`、§5 验收口径 7 PASS→8 PASS、§6 第 7 条「可选能力」表述废止改写为必装口径；②`check_env.py` 新增第 8 组检查、`requirements.txt` 收录 playwright==1.58.0 | 本文件 + `scripts/check_env.py` + `requirements.txt` + `README.md` + `操作使用说明书.html` |
 | 2026-08-11 | v1.1 | ①§3 新增「一键自动安装」提示框：单句通用指令（区分 macOS/Windows），一键完成自动安装与验收，同步至 `操作使用说明书.html` | 本文件 + `操作使用说明书.html` |
 | 2026-08-10 | v1.0 | 首次创建：安装清单 §2 / 安装步骤 §3 / Agent 识别映射 §4 / 验收标准 §5，配套环境自检脚本与入口启动序列步骤 0 | 本文件 + `scripts/check_env.py` + `AGENTS.md` + `CLAUDE.md` + `README.md` |

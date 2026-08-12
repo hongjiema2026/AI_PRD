@@ -350,7 +350,7 @@ pre.code .cmd{color:#61afef}
   <h3 class="sec-ttl">2.2 首次安装与验收</h3>
   <p>首次使用时，工作站会自动执行环境自检。<strong>任一项检查失败即判定为首次使用</strong>，需完成安装后方可进入正常工作流程。</p>
 
-  <h4 class="sub-ttl">安装清单（7 项自检）</h4>
+  <h4 class="sub-ttl">安装清单（8 项自检）</h4>
   <p>执行 <code class="inline">python3 scripts/check_env.py</code>（只读，无副作用）：</p>
   <div class="card tight">
     <table class="tbl">
@@ -363,6 +363,7 @@ pre.code .cmd{color:#61afef}
         <tr><td>5</td><td>项目配置</td><td>project.yaml 可解析且 version.current 非空</td><td>修复 YAML 文件</td></tr>
         <tr><td>6</td><td>hooks 权限</td><td>.zcode/hooks 三脚本有执行位</td><td><code>chmod +x</code></td></tr>
         <tr><td>7</td><td>settings.json 路径</td><td>Write/Edit 权限路径 = 当前项目根</td><td>替换为当前项目根绝对路径</td></tr>
+        <tr><td>8</td><td>Playwright 浏览器</td><td>playwright 可 import 且 chromium 二进制存在</td><td><code>pip install playwright && playwright install chromium</code></td></tr>
       </tbody>
     </table>
   </div>
@@ -370,12 +371,12 @@ pre.code .cmd{color:#61afef}
   <div class="card tip">
     <span class="lbl">一键自动安装</span>
     <p style="margin:0 0 10px">将下面这句话<strong>复制发给 Agent</strong>，它会按 INSTALL.md 自动完成安装与验收：</p>
-    <pre class="code">请按 INSTALL.md 自动安装本机环境并验收至 7 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。</pre>
+    <pre class="code">请按 INSTALL.md 自动安装本机环境并验收至 8 项全 PASS（macOS 需 chmod hooks，Windows 用 WSL 且跳过 chmod）。</pre>
   </div>
 
   <div class="card tip">
     <span class="lbl">验收</span>
-    <p style="margin:0">安装后重跑 <code class="inline">python3 scripts/check_env.py; echo $?</code>，<strong>7 项全 PASS、退出码 0</strong> 方为通过。验收失败<strong>禁止进入意图分类</strong>（启动序列步骤 0 硬门禁）。</p>
+    <p style="margin:0">安装后重跑 <code class="inline">python3 scripts/check_env.py; echo $?</code>，<strong>8 项全 PASS、退出码 0</strong> 方为通过。验收失败<strong>禁止进入意图分类</strong>（启动序列步骤 0 硬门禁）。</p>
   </div>
 
   <h3 class="sec-ttl">2.3 三分钟跑通第一个任务</h3>
@@ -747,7 +748,7 @@ pre.code .cmd{color:#61afef}
     <table class="tbl">
       <thead><tr><th>脚本</th><th>命令</th><th>用途</th></tr></thead>
       <tbody>
-        <tr><td><code>check_env.py</code></td><td><code>python3 scripts/check_env.py</code></td><td>环境自检（7 项，唯一验收命令）</td></tr>
+        <tr><td><code>check_env.py</code></td><td><code>python3 scripts/check_env.py</code></td><td>环境自检（8 项，唯一验收命令）</td></tr>
         <tr><td><code>init_project.py</code></td><td><code>python3 scripts/init_project.py [名称]</code></td><td>初始化项目（重建缺失目录）</td></tr>
         <tr><td><code>state_manager.py</code></td><td><code>init | read | refresh | update-version &lt;v&gt; | record-decision &lt;text&gt;</code></td><td>STATE.md 跨会话状态管理</td></tr>
       </tbody>
@@ -888,7 +889,7 @@ pre.code .cmd{color:#61afef}
 
   <details class="faq-item" open>
     <summary>首次使用，环境自检失败怎么办？</summary>
-    <div class="ans">环境自检（<code class="inline">check_env.py</code>）任一项 FAIL 即判定首次使用。总指挥会展示安装清单，<strong>等待你同意后</strong>按 INSTALL.md §3 执行安装（pip 依赖 / hooks 赋权 / settings.json 路径替换 / 目录修复），完成后重跑自检验收。<strong>验收未通过前禁止进入工作流程</strong>。注意 Python 需用户自行安装（≥3.9），Agent 不可代装。</div>
+    <div class="ans">环境自检（<code class="inline">check_env.py</code>）任一项 FAIL 即判定首次使用。总指挥会展示安装清单，<strong>等待你同意后</strong>按 INSTALL.md §3 执行安装（pip 依赖 / Playwright 浏览器 / hooks 赋权 / settings.json 路径替换 / 目录修复），完成后重跑自检验收。<strong>验收未通过前禁止进入工作流程</strong>。注意 Python 需用户自行安装（≥3.9），Agent 不可代装。</div>
   </details>
 
   <details class="faq-item">
